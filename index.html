@@ -1,1033 +1,913 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#F7F5F0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="菜單庫">
+<meta name="theme-color" content="#f5f3ef">
+<meta name="apple-mobile-web-app-title" content="段考衝刺">
 <link rel="apple-touch-icon" href="icon.png">
-<title>晚餐菜單庫</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="icon" type="image/png" href="favicon.png">
+<title>段考衝刺</title>
 <style>
 :root{
-  --bg:#F7F5F0; --paper:#FFFEFB; --ink:#2B2A28; --sub:#8A857B; --line:#E4DFD4; --line2:#CFC9BC;
-  --accent:#3A4E6B; --red:#C73E3A;
-  --font:"PingFang TC","Hiragino Sans","Noto Sans TC","Helvetica Neue",system-ui,sans-serif;
+  --bg:#f5f3ef; --card:#fdfcfa; --ink:#2f2c33; --muted:#7b7680; --line:#e7e2db;
+  --accent:#7d6e9e; --accent-soft:#eeeaf3; --accent-2:#9c8fb8; --done:#6f8f76; --done-soft:#e8efe8; --track:#ebe7e1; --warn:#b5675c; --warn-soft:#f6e9e6;
+  --pump:#c98f52; --pump-soft:#f6ece0;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);letter-spacing:.03em;-webkit-text-size-adjust:100%;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-button,input,select,textarea{font:inherit;letter-spacing:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-[hidden]{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding:0 16px 130px}
-small{font-size:11px}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1b1f; --card:#252429; --ink:#ebe8ef; --muted:#a19ca8; --line:#36343c;
+    --accent:#b2a5d1; --accent-soft:#302c3c; --accent-2:#c7bce0; --done:#93b39a; --done-soft:#26302a; --track:#33313a; --warn:#d6897d; --warn-soft:#3a2a28;
+    --pump:#ddb07c; --pump-soft:#3a3024;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1b1f; --card:#252429; --ink:#ebe8ef; --muted:#a19ca8; --line:#36343c;
+    --accent:#b2a5d1; --accent-soft:#302c3c; --accent-2:#c7bce0; --done:#93b39a; --done-soft:#26302a; --track:#33313a; --warn:#d6897d; --warn-soft:#3a2a28;
+    --pump:#ddb07c; --pump-soft:#3a3024;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  -webkit-text-size-adjust:100%;font-size:17px;line-height:1.55}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px 40px}
 
-/* 色彩分類：只用在項目前面的細條 */
-.k-牛{--kd:#C73E3A}.k-豬{--kd:#D4789A}.k-雞{--kd:#E39A2D}.k-海鮮{--kd:#3F78B5}.k-蛋{--kd:#E5C23A}
-.k-豆腐{--kd:#A9896A}.k-蔬菜{--kd:#6E9F5B}.k-湯{--kd:#5FA3AD}.k-甜湯{--kd:#9A7FB5}.k-一鍋{--kd:#4C5A8C}
-.dot{display:inline-block;width:3px;height:12px;background:var(--kd);flex:none}
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 0 0;color:var(--sub);font-size:12px}
-.legend span{display:inline-flex;align-items:center;gap:6px}
+header{padding:30px 2px 14px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+header h1{margin:0;font-size:24px;font-weight:500;letter-spacing:.06em}
+header .sub{color:var(--muted);font-size:14px;margin-top:4px;letter-spacing:.04em}
+.dday{text-align:right;line-height:1}
+.dday b{font-size:54px;font-weight:300;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.dday span{display:block;font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:.04em}
 
-/* 標題與按鈕 */
-.top{display:flex;align-items:flex-end;justify-content:space-between;padding:16px 0 8px}
-.top h1{margin:0;font-size:28px;line-height:1.2;font-weight:300;letter-spacing:.16em}
-.plus{width:34px;height:34px;border-radius:50%;border:1px solid var(--ink);background:none;font-size:20px;font-weight:300;line-height:1;padding:0 0 2px}
-.btn{border:1px solid var(--ink);background:none;border-radius:2px;padding:11px 16px;letter-spacing:.08em}
-.btn.primary{background:var(--ink);color:#fff}
-.btn.wide{width:100%}
-.btn:active{opacity:.6}
-.bar{display:flex;gap:10px;margin:0 0 10px}
-.bar .btn{flex:1}
-.note{margin:6px 0;color:var(--sub);font-size:12px}
-.warn{color:var(--red)}
-.card{background:none;padding:14px 0;margin:0;border-top:1px solid var(--line)}
-.h2{margin:26px 0 4px;font-size:12px;color:var(--sub);letter-spacing:.14em}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
+  display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:18px}
+nav button{border:0;background:transparent;padding:8px 2px;border-radius:18px;font-size:14px;color:var(--muted);white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .ic{font-size:18px;line-height:1;filter:saturate(.55);opacity:.85}
+nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+section[hidden]{display:none}
 
-/* 週次切換 */
-.wnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:0 0 8px}
-.wnav b{min-width:150px;text-align:center;font-weight:400;font-size:16px;letter-spacing:.1em}
-.wnav button{width:44px;height:34px;border:0;background:none;color:var(--sub);font-size:22px;font-weight:300;line-height:1}
-.bar.slim .btn{padding:9px 14px;font-size:14px}
-.bar.slim .btn.primary{flex:1}
+.bar{height:10px;background:var(--track);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.bar.green i{background:var(--done)}
+.bar.pump i{background:var(--pump)}
 
-/* 本週菜單 */
-.wk{margin-top:4px}
-.wr{display:grid;grid-template-columns:54px repeat(4,minmax(0,1fr));gap:5px;padding:7px 0;border-top:1px solid var(--line);align-items:center}
-.wr.hd{border-top:0;border-bottom:0;padding:4px 0 6px;font-size:11px;color:var(--sub);letter-spacing:.14em}
-.wr.hd span{padding-left:10px}
-.wr.hd span:first-child{padding:0}
-.dc{background:none;border:0;padding:0;text-align:left;line-height:1.35;display:flex;flex-direction:column;gap:1px}
-.dc b{font-size:14px;font-weight:500}
-.dc .d1{font-size:11px;color:var(--sub)}
-.dc .d2{font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:4px}
-.dc .d2 b{font-size:11px;font-weight:600}
-.sq{display:inline-grid;place-items:center;min-width:16px;height:16px;border:1px solid var(--ink);border-radius:2px;font-size:10px;line-height:1}
-.dc .ok{color:#5E8E55;margin-left:3px;font-weight:600}
-.dc .wn{color:#C27A1A;margin-left:3px;font-weight:600}
-.dc .no{color:var(--red)}
-.wc{display:flex;flex-direction:column;gap:5px;min-width:0}
-.wc.span{grid-column:2/-1}
-.dish{display:block;width:100%;background:none;border:0;border-left:3px solid var(--kd);border-radius:0;padding:1px 0 1px 6px;text-align:left;font-size:13px;line-height:1.4;font-weight:400;color:var(--ink);overflow-wrap:anywhere}
-.dish:active{opacity:.55}
-.bf{font-style:normal;font-size:10px;font-weight:700;color:var(--red);margin-right:3px}
-.em{grid-column:2/-1;color:var(--sub);font-size:13px;padding-left:2px}
+/* pumpkin timer */
+.timer{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin-bottom:22px}
+.trow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.clock{font-size:64px;font-weight:200;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;color:var(--pump);min-width:190px}
+.clock.brk{color:var(--done)}
+.tside{flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px}
+.mode{display:inline-flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px;align-self:flex-start}
+.mode button{border:0;background:transparent;padding:5px 14px;border-radius:8px;color:var(--muted);font-size:15px}
+.mode button.on{background:var(--card);color:var(--ink);font-weight:600}
+.ctrls{display:flex;gap:8px}
+.btn{border:1px solid var(--line);background:var(--card);padding:10px 18px;border-radius:14px;font-size:16px}
+.btn.go{background:var(--pump);border-color:var(--pump);color:#fff;font-weight:600;min-width:104px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.timer .bar{height:6px;margin-top:14px}
+.tfoot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:14px;color:var(--muted)}
+.tfoot b{color:var(--ink)}
+.tfoot select{font:inherit;padding:2px 6px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
 
-/* 班別 */
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal .h{text-align:center;font-size:11px;color:var(--sub);padding:2px 0 4px}
-.cal .c{border:0;border-radius:2px;background:var(--paper);min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px}
-.cal .c.out{opacity:.4}
-.cal .c b{font-weight:400;font-size:12px;color:var(--sub);min-width:20px;height:20px;display:grid;place-items:center;border-radius:10px}
-.cal .c b.today{background:var(--ink);color:#fff}
-.cal .c span{font-size:14px;font-weight:500}
-.cal .c.s-早{background:#F4EAC6}.cal .c.s-中{background:#F2D8D3}.cal .c.s-夜{background:#D9E3EC}.cal .c.s-休假{background:var(--paper)}
-.range{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.range .full{grid-column:1/-1}
-.range label{font-size:12px;color:var(--sub)}
-.inp{display:block;width:100%;margin-top:4px;padding:8px 0;border:0;border-bottom:1px solid var(--line2);border-radius:0;background:none;font-size:16px;color:var(--ink)}
-textarea.inp{border:1px solid var(--line2);padding:8px;border-radius:2px}
+.overall{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin:0 0 6px}
+.overall b{color:var(--ink);font-variant-numeric:tabular-nums}
+.days{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:8px 12px;text-align:center;min-width:64px}
+.day small{display:block;color:var(--muted);font-size:12px}
+.day.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.day.on small{color:var(--accent)}
+.day.full{background:var(--done-soft);border-color:transparent}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 8px}
+.dayhead h2{margin:0;font-size:19px;font-weight:600;letter-spacing:.03em}
+.dayhead span{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.note{color:var(--muted);font-size:14px;margin:10px 0 0}
+.tasks{list-style:none;margin:14px 0 0;padding:0;background:var(--card);border-radius:18px;border:1px solid var(--line)}
+.tasks li{border-top:1px solid var(--line)}
+.tasks li:first-child{border-top:0}
+.task{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;width:100%;text-align:left;border:0;background:transparent}
+.box{flex:0 0 26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;margin-top:1px;transition:background .15s}
+.task.done .box{background:var(--accent);border-color:var(--accent)}
+.box{border-color:var(--line)}
+.box svg{width:16px;height:16px;opacity:0}
+.task.done .box svg{opacity:1}
+.tbody{flex:1;min-width:0}
+.tt{display:block}
+.task.done .tt{color:var(--muted);text-decoration:line-through}
+.meta{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.subj{display:inline-block;font-size:12px;font-weight:600;padding:1px 7px;border-radius:6px;margin-right:6px;vertical-align:1px;background:var(--accent-soft);color:var(--accent)}
 
-/* 食譜 */
-.search{position:relative;margin:0 0 6px}
-.search svg{position:absolute;left:0;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:1.5;stroke-linecap:round}
-#q{width:100%;border:0;border-bottom:1px solid var(--line2);border-radius:0;background:none;padding:9px 0 9px 26px;font-size:16px}
-.pills{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:6px 0 16px}
-.pills::-webkit-scrollbar{display:none}
-.pill{flex:0 0 auto;border:0;border-bottom:1px solid transparent;border-radius:0;background:none;padding:4px 0;color:var(--sub);white-space:nowrap}
-.pill small{margin-left:4px}
-.pill[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
-.tiles{display:flex;flex-wrap:wrap;gap:8px}
-.tile{background:var(--paper);border:1px solid var(--line2);border-left:3px solid var(--kd);border-radius:2px;padding:6px 12px 6px 9px;font-size:14px;color:var(--ink);text-align:left}
-.tile small{margin-left:6px;color:var(--sub)}
-.tile.off{border-style:dashed;border-left-style:solid;opacity:.5}
-.tile:active{background:var(--bg)}
-.empty{margin:28px 2px;color:var(--sub)}
-.sw{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.sw input{appearance:none;-webkit-appearance:none;flex:none;width:40px;height:22px;border-radius:11px;background:var(--line2);position:relative;margin:0;transition:background .2s}
-.sw input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
-.sw input:checked{background:var(--ink)}
-#fBeef:checked{background:var(--red)}
-.sw input:checked::after{transform:translateX(18px)}
-.logout{display:block;width:100%;margin-top:22px;border:0;border-top:1px solid var(--line);background:none;color:var(--sub);padding:16px;letter-spacing:.1em}
+/* flashcards */
+.decks{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.deck{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:14px;text-align:left}
+.deck b{display:block;font-size:16px}
+.deck small{color:var(--muted);font-size:13px}
+.deck .bar{height:6px;margin-top:10px}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.back{border:0;background:transparent;color:var(--accent);padding:6px 0;font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;font-size:14px}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.card{margin:18px 0;min-height:240px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;padding:28px 24px;text-align:center;width:100%}
+.card.short{min-height:150px}
+.face{font-size:30px;font-weight:600;line-height:1.35;white-space:pre-line}
+.face.long{font-size:21px;font-weight:500}
+.card .hint{margin-top:18px;color:var(--muted);font-size:14px}
+.card.flipped{border-color:var(--accent)}
+.card.flipped .face{color:var(--accent)}
+.fc-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fc-btns .btn{padding:16px}
+.fc-btns .no{color:var(--warn)}
+.fc-btns .yes{color:var(--done);font-weight:600}
+.fc-info{color:var(--muted);font-size:14px;text-align:center;margin-top:12px}
+.ans{width:100%;font:inherit;font-size:20px;padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:10px}
+.res{border-radius:18px;padding:14px 16px;margin-bottom:12px}
+.res.ok{background:var(--done-soft)}
+.res.ng{background:var(--warn-soft)}
+.res .st{font-weight:600;margin-bottom:6px}
+.res.ok .st{color:var(--done)}
+.res.ng .st{color:var(--warn)}
+.res .row{font-size:16px;margin-top:4px;word-break:break-word}
+.res .row small{color:var(--muted);margin-right:6px}
+.res mark{background:transparent;color:var(--warn);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.empty{text-align:center;padding:50px 10px;color:var(--muted)}
+.empty b{display:block;font-size:20px;color:var(--ink);margin-bottom:8px}
 
-/* 底部導覽 */
-.tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(247,245,240,.94);border-top:1px solid var(--line);padding:7px 0 calc(7px + env(safe-area-inset-bottom));z-index:5}
-.tabbar button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;letter-spacing:.1em;color:var(--sub);padding:2px 0}
-.tabbar svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
-.tabbar button[aria-current=page]{color:var(--ink)}
+.tbl{width:100%;border-collapse:collapse;background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--line);font-size:15px}
+.tblw{overflow-x:auto}
+.tbl th,.tbl td{padding:10px 12px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{background:var(--accent-soft);color:var(--accent);font-weight:600;border-top:0}
+h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-spacing:.06em}
+.rules{margin:0;padding-left:20px;color:var(--muted);font-size:15px}
+/* overview */
+.subjs{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 16px}
+.srow{display:grid;grid-template-columns:44px 1fr 64px;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.srow:first-child{border-top:0}
+.srow b{font-weight:600}
+.srow span{text-align:right;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.srow .bar{height:8px}
+.tbl td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.go{cursor:pointer}
+.tbl tr.today td{background:var(--accent-soft)}
+.olist{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:18px}
+.olist li{padding:12px 16px;border-top:1px solid var(--line)}
+.olist li:first-child{border-top:0}
+.olist .dh{display:flex;justify-content:space-between;font-weight:600;margin-bottom:4px}
+.olist .dh span{font-weight:400;color:var(--muted);font-size:14px}
+.olist .it{font-size:15px;display:flex;gap:8px;padding:2px 0}
+.olist .it i{font-style:normal;width:18px;flex:0 0 18px;color:var(--muted)}
+.olist .it.ok{color:var(--muted)}
+.olist .it.ok i{color:var(--done)}
 
-/* 面板 */
-dialog{border:0;padding:0;width:100%;max-width:560px;margin:auto auto 0;border-radius:0;background:var(--bg);color:var(--ink);max-height:92vh;overflow:auto}
-dialog::backdrop{background:rgba(43,42,40,.35)}
-dialog[open]{animation:up .22s cubic-bezier(.2,.8,.2,1)}
-@keyframes up{from{transform:translateY(30px);opacity:.3}to{transform:none;opacity:1}}
-.sh{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 20px;background:var(--bg);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
-.sh h2{margin:0;font-size:15px;font-weight:500;text-align:center;flex:1;letter-spacing:.1em}
-.sh button{background:none;border:0;color:var(--accent);font-size:15px;padding:4px 0;min-width:56px}
-.sh button:first-child{text-align:left}.sh button:last-child{text-align:right}
-.sh .go{font-weight:600}
-.sbody{padding:6px 20px calc(24px + env(safe-area-inset-bottom))}
-.grp{padding:14px 0;border-bottom:1px solid var(--line)}
-.lab{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;letter-spacing:.1em}
-.grp .note{margin:8px 0 0}
-.row2{display:grid;grid-template-columns:1fr;gap:14px}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{border:1px solid var(--line2);background:none;border-radius:2px;padding:5px 12px}
-.seg button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-.tag{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line2);border-radius:2px;padding:2px 2px 2px 9px}
-.tag button{border:0;background:none;padding:0 6px;font-size:16px;line-height:1;color:var(--sub)}
-.sug{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.sug button{border:1px dashed var(--line2);background:none;border-radius:2px;padding:1px 9px;color:var(--sub);font-size:13px}
-.err{margin:12px 0 0;color:var(--red)}
-.dng{display:block;width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:15px 0;text-align:left;font-size:15px}
-.dng.red{color:var(--red)}
-#dangerZone{padding-top:10px}
-.opts{max-height:60vh;overflow:auto}
-.opts button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:15px 2px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:none}
-.opts small{margin-left:auto;color:var(--sub)}
-.opts small.red{margin-left:0;color:var(--red)}
-.opts .askmsg{margin:12px 0 6px;white-space:pre-line;line-height:1.7;color:var(--sub);font-size:13px}
-.opts .okbtn{justify-content:center;margin-top:12px;background:var(--ink);color:#fff;border:0;border-radius:2px;padding:13px;letter-spacing:.1em}
-.opts .okbtn.danger{background:var(--red)}
-.opts textarea{width:100%;min-height:200px;padding:10px;border:1px solid var(--line2);border-radius:2px;background:var(--paper)}
-button:disabled{opacity:.45}
-
-/* 登入 */
-#login{max-width:420px;margin:0 auto;padding:16vh 24px 40px}
-#login h1{font-size:28px;margin:0 0 6px;font-weight:300;letter-spacing:.16em}
-#login p{margin:0 0 30px;color:var(--sub);font-size:13px}
-.group{margin-bottom:18px}
-.group input{display:block;width:100%;border:0;border-bottom:1px solid var(--line2);background:none;padding:13px 0;font-size:16px;border-radius:0}
-
-#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:2px;max-width:88vw;z-index:20;font-size:13px;text-align:center;letter-spacing:.06em}
-#toast.bad{background:var(--red)}
-.demo{margin:14px 0 0;padding:8px 12px;border:1px dashed var(--line2);font-size:12px;color:var(--sub)}
-@media (prefers-reduced-motion:reduce){dialog[open]{animation:none}.sw input,.sw input::after{transition:none}}
-/* 待買清單 */
-.addrow{display:flex;gap:12px;align-items:flex-end;margin-bottom:12px}
-.addrow .inp{margin-top:0;flex:1}
-.addrow .btn{flex:none;padding:9px 18px}
-.gh{display:flex;align-items:baseline;gap:8px;margin:22px 0 2px;font-size:12px;color:var(--sub);letter-spacing:.14em}
-.it{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:10px 0}
-.ck{width:22px;height:22px;flex:none;border:1px solid var(--line2);border-radius:50%;background:none;padding:0;position:relative}
-.it.done .ck{background:var(--ink);border-color:var(--ink)}
-.it.done .ck::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
-.in{flex:1;min-width:0;text-align:left;background:none;border:0;border-left:3px solid var(--kd);padding:0 0 0 9px;display:flex;flex-direction:column;line-height:1.4}
-.in .nm{font-size:15px}
-.in small{color:var(--sub);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.it.done .in{opacity:.4}
-.it.done .nm{text-decoration:line-through}
-.k-none{--kd:#CFC9BC}
-.rm{flex:none;width:36px;height:36px;border:0;background:none;color:var(--sub);font-size:22px;font-weight:300;line-height:1;padding:0}
-.rm:active{color:var(--red)}
-#toast button{margin-left:14px;border:0;background:none;color:#fff;font:inherit;text-decoration:underline;padding:0}
-.bar{align-items:stretch}
-.ib{flex:none;width:46px;display:grid;place-items:center;padding:0;border:1px solid var(--ink);border-radius:2px;background:none;color:var(--ink)}
-.ib svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
-.ib.warn{color:var(--red);border-color:var(--line2)}
-.ib:active{opacity:.55}
-.ib:disabled{color:var(--sub);opacity:.4}
-
+/* quiz */
+.qintro{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 22px;text-align:center}
+.qintro h2{margin:0 0 6px;font-size:22px}
+.qintro p{margin:4px 0;color:var(--muted)}
+.qintro .best{margin:18px 0;font-size:15px}
+.qintro .best b{font-size:28px;color:var(--accent);font-variant-numeric:tabular-nums}
+.qprog{display:flex;justify-content:space-between;color:var(--muted);font-size:14px;margin-bottom:6px}
+.qscore{text-align:center;padding:22px 0 10px}
+.qscore b{display:block;font-size:80px;line-height:1;font-weight:300;color:var(--accent);font-variant-numeric:tabular-nums}
+.qscore span{color:var(--muted)}
+.qres{list-style:none;margin:14px 0 18px;padding:0;background:var(--card);border:1px solid var(--line);border-radius:18px}
+.qres li{padding:12px 16px;border-top:1px solid var(--line);font-size:16px}
+.qres li:first-child{border-top:0}
+.qres .q{color:var(--muted);font-size:14px}
+.qres .ok{color:var(--done);font-weight:600}
+.qres .ng{color:var(--warn);font-weight:600}
+.qres mark{background:transparent;color:var(--warn);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.qres small{color:var(--muted);margin-right:6px}
+.qhist{margin-top:18px;font-size:14px;color:var(--muted);text-align:center}
+/* focus full screen */
+.clock{cursor:pointer}
+.fxopen{border:0;background:transparent;color:var(--muted);font-size:14px;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+.fx{--pump:#ff8a1f;--pump-d:#d4610a;--stem:#5f8a3a;--leaf:#7fb04f;--face:#4a2414;--ink:#f6e9d7;--muted:#b7a4cf;--line:#4a3566;--done:#9be37a;
+  --card:#2c1d42;--accent:#8e5bd8;
+  position:fixed;inset:0;z-index:50;color:var(--ink);
+  background:radial-gradient(ellipse at 50% 120%,#3b1f57 0%,#1b1129 55%,#120b1c 100%);display:grid;grid-template-columns:1fr 104px;grid-template-rows:1fr auto;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.fx[hidden]{display:none}
+.fx-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);left:calc(env(safe-area-inset-left,0px) + 16px);
+  border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 16px;font-size:15px;color:var(--muted);z-index:2}
+.fx-main{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px 16px 0}
+.fx-mode{color:var(--muted);font-size:17px;letter-spacing:.12em}
+.fx-clock{text-shadow:0 0 40px rgba(255,138,31,.35);font-size:clamp(96px,21vw,240px);font-weight:200;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:var(--pump)}
+.fx-clock.brk{color:var(--done);text-shadow:0 0 40px rgba(155,227,122,.3)}
+.fx .btn{background:var(--card);border-color:var(--line);color:var(--ink)}
+.fx .btn.go{background:var(--pump);border-color:var(--pump);color:#2a0f3d}
+.fx .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.fx-moon{position:absolute;top:calc(env(safe-area-inset-top,0px) + 70px);right:calc(104px + 13%);width:64px;height:64px;border-radius:50%;background:#f3e3b5;box-shadow:0 0 50px rgba(243,227,181,.35);pointer-events:none}
+.fx-moon::after{content:"";position:absolute;inset:0;border-radius:50%;background:#1d1230;transform:translate(16px,-8px)}
+@media (max-width:520px){.fx-moon{right:96px;width:40px;height:40px;top:76px}}
+.fx-ctrls{display:flex;gap:10px;margin-top:22px}
+.fx-ctrls .btn{padding:14px 28px;font-size:18px}
+.fx-track{grid-column:1;grid-row:2;position:relative;height:120px;margin:0 28px 34px}
+.fx-line{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line);border-radius:2px}
+.fx-roll{position:absolute;bottom:2px;left:0;width:88px;height:88px;will-change:transform}
+.fx-roll svg{width:100%;height:100%;display:block}
+.fx-flag{position:absolute;right:-4px;bottom:2px;width:2px;height:40px;background:var(--line)}
+.fx-stack{grid-column:2;grid-row:1 / 3;border-left:1px solid var(--line);display:flex;flex-direction:column-reverse;align-items:center;
+  gap:2px;padding:96px 0 36px;overflow:hidden;position:relative}
+.fx-stack svg{width:64px;height:64px;flex:0 0 64px;position:relative}
+.fx-stack svg+svg{margin-bottom:-30px}
+.fx-stack .new{animation:drop .8s cubic-bezier(.3,1.4,.5,1) both}
+.fx-cnt{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);left:0;right:0;color:var(--muted);font-size:13px;text-align:center;letter-spacing:.06em}
+.fx-cnt b{display:block;font-size:30px;font-weight:300;color:var(--ink);letter-spacing:0}
+@keyframes drop{from{transform:translateY(-70vh);opacity:0}60%{opacity:1}to{transform:none}}
+@media (max-width:520px){.fx-stack{padding-bottom:28px}.fx{grid-template-columns:1fr 72px}.fx-stack svg{width:48px;height:48px;flex-basis:48px}.fx-stack svg+svg{margin-bottom:-23px}.fx-roll{width:64px;height:64px}.fx-track{height:90px;margin:0 16px 26px}}
+@media (prefers-reduced-motion:reduce){.fx-stack .new{animation:none}}
+@media (max-width:520px){.clock{font-size:54px;min-width:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-
-<main id="login" hidden>
-  <h1>晚餐菜單庫</h1>
-  <p>登入後管理菜單與班別</p>
-  <form id="loginForm">
-    <div class="group">
-      <input id="lEmail" type="email" placeholder="Email" aria-label="Email" autocomplete="username" required>
-      <input id="lPass" type="password" placeholder="密碼" aria-label="密碼" autocomplete="current-password" required>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>段考衝刺</h1>
+      <div class="sub">10/14（三）・10/15（四）</div>
     </div>
-    <p id="lErr" class="err" role="alert" hidden></p>
-    <button type="submit" id="lBtn" class="btn primary wide">登入</button>
-  </form>
-</main>
+    <div class="dday"><b id="dnum">7</b><span id="dlabel">天後考試</span></div>
+  </header>
 
-<div id="app" class="wrap" hidden>
-  
-  <header class="top"><h1 id="pageTitle">本週菜單</h1><button id="add" class="plus" type="button" aria-label="新增食譜" hidden>＋</button></header>
+  <nav role="tablist">
+    <button role="tab" data-tab="plan" aria-selected="true"><span class="ic">🎃</span>進度</button>
+    <button role="tab" data-tab="quiz" aria-selected="false"><span class="ic">✏️</span>英文小考</button>
+    <button role="tab" data-tab="cards" aria-selected="false"><span class="ic">🃏</span>小卡</button>
+    <button role="tab" data-tab="overview" aria-selected="false"><span class="ic">📊</span>總表</button>
+    <button role="tab" data-tab="exam" aria-selected="false"><span class="ic">🗓️</span>考程</button>
+  </nav>
 
-  <section id="vMenu" hidden>
-    <div class="wnav"><button id="wPrev" type="button" aria-label="上一週">‹</button><b id="weekLabel"></b><button id="wNext" type="button" aria-label="下一週">›</button></div>
-    <div class="bar slim"><button id="gen" class="btn primary" type="button">排這週菜單</button><button id="copy" class="ib" type="button" aria-label="複製成文字" title="複製成文字"><svg viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg></button><button id="mClear" class="ib warn" type="button" aria-label="清空本週菜單" title="清空本週菜單"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l.8 11a2 2 0 0 0 2 1.8h4.4a2 2 0 0 0 2-1.8L17 7M10.5 11v5M13.5 11v5"/></svg></button></div>
-    <p id="menuNote" class="note"></p>
-    <div id="days" class="wk"></div>
-    <p class="note">點菜名可更換；點日期可重排、確認或不排餐。</p>
-    <div id="legMenu" class="legend"></div>
+  <section id="plan">
+    <div class="timer">
+      <div class="trow">
+        <div class="clock" id="clock">25:00</div>
+        <div class="tside">
+          <div class="mode"><button id="mFocus" class="on">🎃 專注</button><button id="mBreak">休息</button></div>
+          <div class="ctrls"><button class="btn go" id="pStart">開始</button><button class="btn" id="pReset">重設</button></div>
+        </div>
+      </div>
+      <div class="bar pump"><i id="pBar" style="width:0%"></i></div>
+      <div class="tfoot">
+        <span>今天完成 <b id="pCount">0</b> 顆南瓜・<button class="fxopen" id="fxOpen">全螢幕</button></span>
+        <span>專注 <select id="fLen"><option>25</option><option>30</option><option>40</option></select> 分・休息 <select id="bLen"><option>5</option><option>10</option></select> 分</span>
+      </div>
+    </div>
+
+    <div class="overall"><span>總進度</span><b id="allTxt">0%</b></div>
+    <div class="bar"><i id="allBar" style="width:0%"></i></div>
+    <div class="days" id="days"></div>
+    <div class="dayhead"><h2 id="dayTitle"></h2><span id="dayTxt"></span></div>
+    <div class="bar green"><i id="dayBar" style="width:0%"></i></div>
+    <p class="note" id="dayNote"></p>
+    <ul class="tasks" id="tasks"></ul>
   </section>
 
-  <section id="vShop" hidden>
-    <div class="addrow"><input id="sName" class="inp" placeholder="新增品項（可輸入多個）" autocomplete="off" enterkeyhint="done"><button id="sAdd" class="btn primary" type="button">加入</button></div>
-    <div class="bar slim"><button id="sImport" class="btn" type="button">從菜單帶入</button><button id="sCopy" class="ib" type="button" aria-label="複製清單" title="複製清單"><svg viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg></button><button id="sWipe" class="ib warn" type="button" aria-label="清空待買清單" title="清空待買清單"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l.8 11a2 2 0 0 0 2 1.8h4.4a2 2 0 0 0 2-1.8L17 7M10.5 11v5M13.5 11v5"/></svg></button></div>
-    <div id="shopList"></div>
-    <p id="shopNote" class="note"></p>
-    <button id="sClear" class="logout" type="button" hidden>清除已買</button>
+  <section id="overview" hidden>
+    <div class="overall"><span>總進度</span><b id="ovTxt">0%</b></div>
+    <div class="bar"><i id="ovBar" style="width:0%"></i></div>
+    <h3>各科完成度</h3>
+    <div class="subjs" id="ovSubj"></div>
+    <h3>每日總覽</h3>
+    <div class="tblw"><table class="tbl" id="ovDays"></table></div>
+    <h3>全部任務</h3>
+    <ul class="olist" id="ovList"></ul>
   </section>
 
-  <section id="vShift" hidden>
-    <div class="wnav"><button id="mPrev" type="button" aria-label="上個月">‹</button><b id="monthLabel"></b><button id="mNext" type="button" aria-label="下個月">›</button></div>
-    <div id="cal" class="cal"></div>
-    <p class="note">點日期設定班別。早＝黃、中＝粉紅、夜＝藍，與「班表小幫手」相同。</p>
-    <div class="h2">區間填入</div>
-    <div class="card range">
-      <label>從<input id="rFrom" type="date" class="inp"></label>
-      <label>到<input id="rTo" type="date" class="inp"></label>
-      <label class="full">班別<select id="rShift" class="inp"><option>早</option><option>中</option><option>夜</option><option>休假</option></select></label>
-      <button id="rGo" class="btn primary full" type="button">填入這段日期</button>
-    </div>
-    <div class="h2">依循環延伸</div>
-    <div class="card range">
-      <p class="note full" style="margin:0">中5天 → 休1天 → 早5天 → 休2天 → 夜5天 → 休2天，從已輸入的最後一天往後推。11 月班表出來後請核對。</p>
-      <label class="full">延伸到<input id="cycTo" type="date" class="inp"></label>
-      <button id="cycGo" class="btn full" type="button" style="background:var(--fill)">依循環延伸</button>
-    </div>
+  <section id="quiz" hidden>
+    <div id="quizBox"></div>
   </section>
 
-  <section id="vRecipes" hidden>
-    <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="搜尋菜名或食材" enterkeyhint="search" autocomplete="off"></div>
-    <nav id="tabs" class="pills" role="tablist" aria-label="食譜分類"></nav>
-    <div id="grid" class="tiles"></div>
-    <p id="empty" class="empty" hidden></p>
-    <div id="legRec" class="legend"></div>
-    <div class="card sw" style="margin-top:14px"><span>顯示已停用（<span id="offCount">0</span>）</span><input type="checkbox" id="showOff" aria-label="顯示已停用"></div>
-    <button id="logout" class="logout" type="button">登出</button>
+  <section id="cards" hidden>
+    <div id="deckList"></div>
+    <div id="deckView" hidden></div>
+  </section>
+
+  <section id="exam" hidden>
+    <div class="tblw"><table class="tbl">
+      <tr><th>節次</th><th>10/14（三）</th><th>10/15（四）</th></tr>
+      <tr><td>第一節</td><td>英文</td><td>數學</td></tr>
+      <tr><td>第二節</td><td>英文聽力</td><td>作文</td></tr>
+      <tr><td>第三節</td><td>國文</td><td>社會</td></tr>
+      <tr><td>第四節</td><td>自習</td><td>高職參訪</td></tr>
+      <tr><td>第五節</td><td>自然</td><td>高職參訪</td></tr>
+    </table></div>
+    <h3>範圍與配分</h3>
+    <div class="tblw"><table class="tbl">
+      <tr><th>科目</th><th>範圍</th><th>配分</th></tr>
+      <tr><td>國文</td><td>L1–L3、語文常識一</td><td>國字注音 10%、注釋 20%、選擇 60%、閱讀 10%</td></tr>
+      <tr><td>英語</td><td>U1–U2、Review 1</td><td>單題 30%、閱讀題組 30%、文意字彙 7%、填充 4%、整句翻譯 9%</td></tr>
+      <tr><td>英聽</td><td>U1–U2</td><td>選擇 20%</td></tr>
+      <tr><td>數學</td><td>1-1 到 2-1</td><td>選擇 85%、非選 15%</td></tr>
+      <tr><td>自然</td><td>實驗室常用器材、第1–2章</td><td>單選 60%、題組 30%、素養 10%</td></tr>
+      <tr><td>社會</td><td>歷、地、公 各 ch1–ch2</td><td>選擇 100%</td></tr>
+    </table></div>
+    <h3>考試提醒</h3>
+    <ul class="rules">
+      <li>帶齊 2B 鉛筆、橡皮擦、藍筆、黑筆、修正帶</li>
+      <li>不可用擦擦筆或淡色原子筆</li>
+      <li>作文與數學非選題用黑色原子筆</li>
+      <li>考試中使用電子產品視同違規</li>
+    </ul>
   </section>
 </div>
 
-<nav id="tabbar" class="tabbar" hidden>
-  <button type="button" data-v="menu"><svg viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.8" cy="6.5" r=".6"/><circle cx="4.8" cy="12" r=".6"/><circle cx="4.8" cy="17.5" r=".6"/></svg>本週菜單</button>
-  <button type="button" data-v="shop"><svg viewBox="0 0 24 24"><path d="M4 8.5h16l-1.5 9.2a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></svg>待買</button>
-  <button type="button" data-v="shift"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>爸爸班別</button>
-  <button type="button" data-v="recipes"><svg viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v15H7.5A2.5 2.5 0 0 0 5 20.5z"/><path d="M5 20.5A2.5 2.5 0 0 0 7.5 21H19"/></svg>食譜</button>
-</nav>
-
-<dialog id="sheet">
-  <form id="form" novalidate>
-    <div class="sh"><button type="button" id="btnCancel">取消</button><h2 id="sheetTitle">新增食譜</h2><button type="button" id="btnSave" class="go">儲存</button></div>
-    <div class="sbody">
-      <div class="grp"><label class="lab" for="fName">菜名</label><input id="fName" class="inp" maxlength="40" autocomplete="off"></div>
-      <div class="grp"><span class="lab">分類</span><div id="fCat" class="seg"></div></div>
-      <div class="grp">
-        <span class="lab">主食材</span>
-        <div id="tagBox" class="tags"></div>
-        <div id="tagSug" class="sug"></div>
-        <input id="tagIn" class="inp" placeholder="輸入食材，按 Enter 加入（例：蛋、雞）" autocomplete="off">
-      </div>
-      <div class="grp"><label class="sw"><span>含牛</span><input type="checkbox" id="fBeef"></label><p id="beefNote" class="note"></p></div>
-      <div class="grp row2">
-        <div><label class="lab" for="fMin">烹調時間（分鐘）</label><input id="fMin" class="inp" type="number" inputmode="numeric" min="1" max="600"></div>
-        <div><span class="lab">孩子接受度</span><div id="fRate" class="seg"></div></div>
-      </div>
-      <div class="grp"><label class="lab" for="fNotes">備註</label><textarea id="fNotes" class="inp" rows="3" placeholder="做法、連結、小提醒"></textarea></div>
-      <p id="formErr" class="err" role="alert" hidden></p>
-      <div id="dangerZone">
-        <button type="button" id="btnOff" class="dng">停用這道菜</button>
-        <button type="button" id="btnDel" class="dng red">刪除這道菜</button>
-        <p class="note">停用：不再排進菜單，歷史紀錄保留，可隨時還原。<br>刪除：永久移除；曾排進菜單的菜不能刪除，請改用停用。</p>
-      </div>
-    </div>
-  </form>
-</dialog>
-
-<dialog id="pick">
-  <div class="sh"><span style="min-width:56px"></span><h2 id="pickTitle"></h2><button type="button" id="pickClose">關閉</button></div>
-  <div class="sbody"><div id="pickBody" class="opts"></div></div>
-</dialog>
-
-<div id="toast" role="status" hidden></div>
+<div class="fx" id="fx" hidden role="dialog" aria-label="南瓜鐘">
+  <div class="fx-moon"></div>
+  <button class="fx-close" id="fxClose">‹ 回到進度</button>
+  <div class="fx-main">
+    <div class="fx-mode" id="fxMode">專注</div>
+    <div class="fx-clock" id="fxClock">25:00</div>
+    <div class="fx-ctrls"><button class="btn go" id="fxStart">開始</button><button class="btn" id="fxReset">重設</button></div>
+  </div>
+  <div class="fx-track" id="fxTrack"><div class="fx-line"></div><div class="fx-flag"></div><div class="fx-roll" id="fxRoll"></div></div>
+  <div class="fx-stack" id="fxStack"></div>
+</div>
 
 <script>
-const SUPABASE_URL = 'https://mnduxvbjpqstasdpmfcu.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_yJ5i68wsYvtK9UX1l4V0Mw_dVmqyzce';
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* ---------- storage ---------- */
+const KEY='examSprint_2026_1';
+let S={done:{},known:{},pomo:{}};
+try{const r=localStorage.getItem(KEY); if(r){S=Object.assign(S,JSON.parse(r));}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const $=id=>document.getElementById(id);
 
-const CATS = ['主菜','副菜','纖維質','湯','甜湯','一鍋懶人料理'];
-const SLOT_ORDER = ['主菜','副菜','纖維質','湯','一鍋懶人料理','甜湯'];
-const SHIFTS = ['早','中','夜','休假'];
-const ABSENT = ['中'];            // 爸爸不在家吃晚餐的班別（只有這些日子才能排含牛的菜）
-const WD = ['日','一','二','三','四','五','六'];
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ---------- plan data ---------- */
+const CARD=['卡','睡前小卡：英文單字＋國文解釋','10 分鐘，睡前複習記得最牢',0];
+const QUIZ=['英','每日英文小考','單字 10 題＋精選句 2 題，交卷後自動打勾',0,'quiz'];
+const DAYS=[
+ {d:'2026-10-07',w:'三',note:'先從數學開始，乘法公式後面每一章都會用到。',t:[
+  ['數','1-1 乘法公式','p.3–18　看重點＋做練習題',2],
+  ['自','第0章 實驗室常用器材','p.3–7',1],
+  ['自','1-1 長度、質量與時間','p.8–14',1],CARD]},
+ {d:'2026-10-08',w:'四',note:'英文先把單字和兩個文法句型讀熟。',t:[
+  ['數','1-2 多項式的加減','p.19–30',2],
+  ['英','U1 單字＋文法（天氣句型、授與動詞）','p.3–34',2],CARD]},
+ {d:'2026-10-09',w:'五',note:'密度計算是自然必考，公式 D = M ÷ V 要熟。',t:[
+  ['數','1-3 多項式的乘除','p.31–48',2],
+  ['自','1-2 測量與估計','p.15–21',1],
+  ['自','1-3 體積與密度','p.22–34',1],CARD]},
+ {d:'2026-10-10',w:'六',note:'放假日份量比較多，每做完一顆南瓜就起來動一動。',t:[
+  ['英','U2 單字＋文法（after/before/when、whose）','p.35–72',2],
+  ['國','L1 田園之秋選','p.3–21',2],
+  ['自','2-1 認識物質、2-2 溶液與濃度','p.38–67',2],
+  ['數','2-1 平方根的意義','p.53–69',2],CARD]},
+ {d:'2026-10-11',w:'日',note:'今天做完，所有範圍就都讀過一輪了。',t:[
+  ['國','L2 古詩選','p.22–41',2],
+  ['國','L3 下雨天，真好','p.42–62',1],
+  ['國','語文常識一 語法（詞類）','p.63–69',1],
+  ['自','2-3 混合物的分離','p.68–73',1],
+  ['自','第1、2章 自我評量','p.35–37、p.74–76',1],
+  ['數','第1章 自我評量＋素養題','p.49–52',1],
+  ['英','課內精選句 8 句 翻譯默寫','翻譯占 9%',1],CARD]},
+ {d:'2026-10-12',w:'一',note:'社會先讀一輪重點，模擬試題留到 10/14 晚上做。',t:[
+  ['歷','ch1–ch2 重點','p.3–16',1],
+  ['地','ch1–ch2 重點','p.3–16',1],
+  ['公','ch1–ch2 重點','p.3–16',1],
+  ['英','Review Test 1＋閱讀自學樂園','p.73–80',1],CARD]},
+ {d:'2026-10-13',w:'二',note:'明天考英、國、自。今天只複習不學新的，11 點前睡覺。',t:[
+  ['國','第一次學力綜合評量（計時寫）','p.70–76',1],
+  ['國','解釋題庫 20 題 默寫','注釋占 20%',1],
+  ['英','錯題＋精選句默寫＋聽評量音檔','',1],
+  ['自','錯題＋實驗器材再看一次','',1],CARD]},
+ {d:'2026-10-14',w:'三',note:'考完第一天了！今晚衝明天的數學和社會。',t:[
+  ['社','歷史 第一次段考模擬試題','p.17',1],
+  ['社','地理、公民 第一次段考模擬試題','各 p.17',1],
+  ['數','錯題總複習＋乘法公式再練','',1],
+  ['國','作文演練 看結構就好','國文評量 p.77',1]]}
+];
+DAYS.forEach(D=>{const[y,m,d]=D.d.split('-');D.label=(+m)+'/'+(+d);if(D.d>='2026-10-08'&&D.d<='2026-10-13')D.t.push(QUIZ);});
+const tid=(di,ti)=>DAYS[di].d+'#'+ti;
 
-/* ---------- 日期工具（一律用本機時間） ---------- */
-const pad = n => String(n).padStart(2,'0');
-const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
-const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
-const mondayOf = d => { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay()+6)%7)); return x; };
-const isoWd = d => ((d.getDay()+6)%7)+1;
-const dayDiff = (a,b) => Math.round((parse(a) - parse(b)) / 864e5);
-const md = ds => `${+ds.slice(5,7)}/${+ds.slice(8,10)}`;
+/* ---------- dates ---------- */
+function todayStr(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
+function defaultDay(){const t=todayStr();let i=DAYS.findIndex(D=>D.d===t);if(i>=0)return i;return t<DAYS[0].d?0:DAYS.length-1;}
+let cur=defaultDay();
+(function dday(){
+  const n=new Date();const a=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  const e=new Date(2026,9,14);const diff=Math.round((e-a)/86400000);
+  if(diff>0){$('dnum').textContent=diff;$('dlabel').textContent='天後考試';}
+  else if(diff===0){$('dnum').textContent='今天';$('dlabel').textContent='第一天考試，加油';}
+  else if(diff===-1){$('dnum').textContent='今天';$('dlabel').textContent='第二天考試，加油';}
+  else{$('dnum').textContent='完成';$('dlabel').textContent='段考結束了';}
+})();
 
-/* ---------- 全域狀態 ---------- */
-let recipes = [], byId = {}, shiftSet = {}, weekdaySet = {}, catSet = {};
-let view = 'menu', weekStart = mondayOf(new Date()), monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-let wShifts = {}, wMeals = {}, wItems = [];
-let tab = CATS[0], cur = null, tags = [], cat = CATS[0], rate = null, entered = false, tt, pickHandler = null;
+/* ---------- render plan ---------- */
+const check='<svg viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function dayStat(di){const n=DAYS[di].t.length;let k=0;DAYS[di].t.forEach((_,ti)=>{if(S.done[tid(di,ti)])k++;});return[k,n];}
+function renderPlan(){
+  let k=0,n=0;DAYS.forEach((_,di)=>{const[a,b]=dayStat(di);k+=a;n+=b;});
+  const p=Math.round(k/n*100);
+  $('allBar').style.width=p+'%';$('allTxt').textContent=p+'%（'+k+'/'+n+'）';
+  $('days').innerHTML=DAYS.map((D,di)=>{const[a,b]=dayStat(di);
+    return '<button class="day'+(di===cur?' on':'')+(a===b?' full':'')+'" data-d="'+di+'">'+D.label+'<small>'+(a===b?'完成':'週'+D.w)+'</small></button>';}).join('');
+  const D=DAYS[cur];const[a,b]=dayStat(cur);
+  const pumps=D.t.reduce((s,x)=>s+x[3],0);
+  $('dayTitle').textContent=D.label+'（'+D.w+'）'+(D.d===todayStr()?'・今天':'');
+  $('dayTxt').textContent=a+'/'+b+' 項・🎃 '+pumps;
+  $('dayBar').style.width=Math.round(a/b*100)+'%';
+  $('dayNote').textContent=D.note;
+  $('tasks').innerHTML=D.t.map((x,ti)=>{const on=S.done[tid(cur,ti)];
+    const tm=x[3]?'🎃'.repeat(x[3]):'';
+    const meta=[x[2],tm].filter(Boolean).join('　');
+    return '<li><button class="task'+(on?' done':'')+'" data-t="'+ti+'" aria-pressed="'+(on?'true':'false')+'"><span class="box">'+check+'</span><span class="tbody"><span class="tt"><span class="subj">'+x[0]+'</span>'+x[1]+'</span>'+(meta?'<span class="meta">'+meta+'</span>':'')+'</span></button></li>';}).join('');
+  const on=$('days').querySelector('.on');if(on)on.scrollIntoView({inline:'center',block:'nearest'});
+  renderOverview();
+}
+$('days').addEventListener('click',e=>{const b=e.target.closest('.day');if(!b)return;cur=+b.dataset.d;renderPlan();});
+$('tasks').addEventListener('click',e=>{const b=e.target.closest('.task');if(!b)return;const id=tid(cur,+b.dataset.t);
+  if(DAYS[cur].t[+b.dataset.t][4]==='quiz'&&!S.done[id]){goTab('quiz');return;}
+  if(S.done[id])delete S.done[id];else S.done[id]=1;save();renderPlan();});
 
-function toast(msg, bad, action){
-  const t = $('toast'); t.textContent = msg; t.className = bad ? 'bad' : '';
-  if (action){
-    const b = document.createElement('button'); b.type = 'button'; b.textContent = action.label;
-    b.addEventListener('click', () => { t.hidden = true; action.fn(); }); t.append(b);
+/* ---------- tabs ---------- */
+function goTab(t){
+  document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t?'true':'false'));
+  document.querySelectorAll('section').forEach(s=>s.hidden=s.id!==t);
+  if(t==='cards'&&!active)renderDecks();
+  if(t==='quiz'&&!QZ.running)renderQuiz();
+  if(t==='overview')renderOverview();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.tab)));
+
+/* ---------- pumpkin timer ---------- */
+let P={mode:'focus',running:false,endAt:0,left:25*60};
+let ac=null;
+function lenOf(m){return (m==='focus'?+$('fLen').value:+$('bLen').value)*60;}
+function fmt(s){s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function beep(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+  [0,0.35,0.7].forEach(t=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=880;o.connect(g);g.connect(ac.destination);
+  g.gain.setValueAtTime(0.0001,ac.currentTime+t);g.gain.exponentialRampToValueAtTime(0.3,ac.currentTime+t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+t+0.25);o.start(ac.currentTime+t);o.stop(ac.currentTime+t+0.3);});}catch(e){}}
+function setMode(m){P.mode=m;P.running=false;P.left=lenOf(m);drawPomo();}
+function drawPomo(){
+  const left=P.running?(P.endAt-Date.now())/1000:P.left;
+  const c=$('clock');c.textContent=fmt(left);c.classList.toggle('brk',P.mode!=='focus');
+  $('pBar').style.width=Math.min(100,(1-left/lenOf(P.mode))*100)+'%';
+  $('pBar').parentElement.className='bar '+(P.mode==='focus'?'pump':'green');
+  $('mFocus').classList.toggle('on',P.mode==='focus');$('mBreak').classList.toggle('on',P.mode!=='focus');
+  $('pStart').textContent=P.running?'暫停':(P.left<lenOf(P.mode)?'繼續':'開始');
+  $('pCount').textContent=S.pomo[todayStr()]||0;
+  document.title=P.running?fmt(left)+'｜段考衝刺':'段考衝刺';
+}
+function togglePomo(){
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}catch(e){}
+  if(P.running){P.left=(P.endAt-Date.now())/1000;P.running=false;}
+  else{P.endAt=Date.now()+P.left*1000;P.running=true;}
+  drawPomo();}
+$('pStart').onclick=()=>{const wasRunning=P.running;togglePomo();if(!wasRunning)openFx();};
+$('pReset').onclick=()=>setMode(P.mode);
+
+/* ---------- focus full screen ---------- */
+const PCOL=[['#f07b2b','#d9611c'],['#f6a52a','#e08a17'],['#eb6a24','#cc5216']];
+function pumpSVG(k,cls,style,noStem){const c=PCOL[k%PCOL.length];
+  return '<svg viewBox="0 0 100 100" aria-hidden="true"'+(cls?' class="'+cls+'"':'')+(style?' style="'+style+'"':'')+'>'
+  +(noStem?'':'<path d="M50 30 Q48 20 52 13" stroke="#7cc243" stroke-width="7" fill="none" stroke-linecap="round"/>')
+  +'<ellipse cx="30" cy="61" rx="27" ry="26" fill="'+c[1]+'"/><ellipse cx="70" cy="61" rx="27" ry="26" fill="'+c[1]+'"/>'
+  +'<ellipse cx="50" cy="60" rx="29" ry="28" fill="'+c[0]+'"/>'
+  +'<g transform="translate(50 64) scale(.7) translate(-50 -64)">'+'<path d="M27 57 L36 44 L45 57 Z M55 57 L64 44 L73 57 Z M46.5 64 L50 58.5 L53.5 64 Z" fill="#1d1712"/>'
+  +'<path d="M24 66 Q50 74 76 66 Q72 86 50 87 Q28 86 24 66 Z" fill="#1d1712"/>'
+  +'<rect x="35" y="66" width="7" height="6.5" fill="'+c[0]+'"/><rect x="58" y="66" width="7" height="6.5" fill="'+c[0]+'"/>'
+  +'<rect x="46.5" y="80" width="7" height="8" fill="'+c[0]+'"/></g></svg>';}
+const PUMP=pumpSVG(0);
+$('fxRoll').innerHTML=PUMP;
+let fxOn=false,fxShown=-1,wl=null;
+function stackHTML(n,animLast){
+  let h='<div class="fx-cnt">今天<b>'+n+'</b>顆</div>';
+  for(let i=0;i<n;i++)h+=pumpSVG(i,animLast&&i===n-1?'new':'','z-index:'+(i+1),i<n-1);
+  return h;}
+function drawStack(){const n=S.pomo[todayStr()]||0;if(n===fxShown)return;
+  $('fxStack').innerHTML=stackHTML(n,fxShown>=0&&n>fxShown);fxShown=n;}
+async function keepAwake(on){try{if(on&&'wakeLock' in navigator){wl=await navigator.wakeLock.request('screen');}else if(!on&&wl){await wl.release();wl=null;}}catch(e){}}
+function openFx(){fxOn=true;$('fx').hidden=false;document.body.style.overflow='hidden';fxShown=-1;drawStack();keepAwake(true);requestAnimationFrame(fxFrame);}
+function closeFx(){fxOn=false;$('fx').hidden=true;document.body.style.overflow='';keepAwake(false);}
+function fxFrame(){if(!fxOn)return;
+  const len=lenOf(P.mode);const left=P.running?(P.endAt-Date.now())/1000:P.left;
+  const prog=Math.max(0,Math.min(1,1-left/len));
+  const roll=$('fxRoll');const W=$('fxTrack').clientWidth-roll.clientWidth;const x=prog*W;
+  roll.style.transform='translateX('+x+'px)';
+  const c=$('fxClock');c.textContent=fmt(left);c.classList.toggle('brk',P.mode!=='focus');
+  $('fxMode').textContent=P.mode==='focus'?(P.running?'專注中':'專注'):(P.running?'休息中':'休息一下');
+  $('fxStart').textContent=P.running?'暫停':(P.left<len?'繼續':'開始');
+  $('fxStart').className='btn '+(P.mode==='focus'?'go':'primary');
+  drawStack();
+  requestAnimationFrame(fxFrame);}
+$('clock').onclick=openFx;$('fxOpen').onclick=openFx;$('fxClose').onclick=closeFx;
+$('fxStart').onclick=togglePomo;$('fxReset').onclick=()=>setMode(P.mode);
+document.addEventListener('keydown',e=>{if(!fxOn)return;if(e.key==='Escape')closeFx();else if(e.key===' '&&e.target===document.body){e.preventDefault();togglePomo();}});
+document.addEventListener('visibilitychange',()=>{if(fxOn&&document.visibilityState==='visible')keepAwake(true);});
+$('mFocus').onclick=()=>setMode('focus');$('mBreak').onclick=()=>setMode('break');
+$('fLen').onchange=$('bLen').onchange=()=>{if(!P.running)setMode(P.mode);};
+setInterval(()=>{if(!P.running)return;
+  if(Date.now()>=P.endAt){beep();
+    if(P.mode==='focus'){const t=todayStr();S.pomo[t]=(S.pomo[t]||0)+1;save();setMode('break');}
+    else setMode('focus');
+    return;}
+  drawPomo();},250);
+drawPomo();
+
+/* ---------- flashcard data ---------- */
+const V1=`summer vacation|暑假
+weather|天氣
+Taiwan|臺灣
+fun|樂趣；有趣的
+snow|下雪；雪
+send|寄；送
+postcard|明信片
+borrow|借（入）
+lend|借（出）
+glove|手套
+kind|親切的；有同情心的
+lovely|可愛的；美好的
+jacket|夾克
+give|給予
+hate|討厭
+heavy|厚重的；大量的
+season|季節
+spring|春天
+cloud|雲
+sun|太陽
+autumn|秋天（另一個字是 fall）
+wind|風
+winter|冬天
+sunny|陽光普照的
+snowy|有雪的；下雪的
+rainy|有雨的；下雨的
+cloudy|多雲的
+windy|風大的
+cool|涼爽的
+speak|講話
+mad|生氣的
+in fact|事實上
+mean|意指
+another|另一（的）
+order|點餐；訂購
+strange|奇怪的；陌生的
+soon|很快地
+Rd.|路（Road 的縮寫）
+ROC|中華民國（縮寫）`;
+const V2=`club|社團
+make up one's mind|下定決心
+interesting|有趣的
+science|科學
+subject|學科；主題
+hear|聽見
+same|相同的
+call|打電話；呼叫
+tell|告訴
+pull one's leg|開玩笑
+poor|不佳的；貧窮的
+end|結尾；結束
+whose|誰的（東西）
+camera|相機
+mine|我的（東西）
+What's up?|怎麼了？
+when|當……
+back|返回
+sign up|報名參加
+wrong|錯誤的
+hold on|稍候
+math|數學
+soccer|足球
+Chinese|中國的；中國人；中文
+history|歷史
+violin|小提琴
+robot|機器人
+health|健康
+PE|體育（縮寫）
+look for|尋找
+Ms.|女士
+engineer|工程師
+lesson|課；課程
+difficult|困難的
+teach|教導
+own|自己的；擁有
+finish|完成；結束
+festival|節慶
+start|開始
+choice|選擇
+not... at all|一點也不……
+free|免費的
+show|表演；節目
+miss out|錯過機會`;
+const SENT=`It was hot, and it rained a lot.|那裡很熱，而且下很多雨。
+I sent you a postcard from Australia.|我從澳洲寄了一張明信片給你。
+How are you doing?|你過得如何？
+I ordered cookies and hot chocolate because the weather was cold.|我點了餅乾和熱巧克力，因為天氣很冷。
+I can't make up my mind because all the clubs are interesting.|我沒辦法下定決心，因為所有的社團都好有趣。
+When I heard about the club, I thought of you.|我一聽到這個社團，就想到你了。
+Our lessons are not difficult at all, and our teachers teach in a fun way.|我們的課程一點也不難，而且我們的老師們會用有趣的方式教學。
+You can design your own video games after you finish the lessons.|在完成課程後，你可以設計你自己的電玩遊戲。`;
+const GRAM=`___ is the weather in Taipei today?|How
+（How is/was the weather…?）
+
+What was the weather ___ in New York yesterday?|like
+（用 What 問天氣要加 like）
+
+A: ___ was the weather yesterday?
+B: It was cloudy and windy.|How
+（或 What was the weather like yesterday?）
+
+It's cool here in autumn.
+（依畫線部分 cool 造問句）|How is the weather here in autumn?
+
+It ___ a lot in Hokkaido last December.
+（北海道去年十二月下很多雪）|snowed
+（rain/snow 當動詞，後面可加 a lot）
+
+There ___ not much snow here last winter.|was
+（snow 不可數，用 is/was；last winter 用過去式）
+
+There is a lot of rain in Taipei in spring.
+（用 rain 當動詞改寫）|It rains a lot in Taipei in spring.
+
+It snowed yesterday.
+（用天氣形容詞改寫）|It was snowy yesterday.
+
+They ___ heavy snow in New York last night.|had
+（We/You/They＋have/had＋rain/snow）
+
+Peter bought me a cake.
+＝ Peter bought a cake ___ me.|for
+（buy/make/order 搭配 for）
+
+I sent Nancy a gift yesterday.
+＝ I sent a gift ___ Nancy yesterday.|to
+（write/send/give/show/lend 搭配 to）
+
+We made a birthday card ___ Ryan.|for
+
+Annie gave a doll ___ her friend.|to
+
+Tracy got a new watch, and she showed ___ ___ me.|it to
+（直接受詞是 it/them 時，只能寫 showed it to me，不可寫 showed me it）
+
+I got some snacks (to / for) Julia.|for
+
+Can I show the painting (to / for) Mr. Lee?|to
+
+My mother (reads / reads to) my little brother a story every night.|reads
+（後面直接接「人＋物」，不加 to）
+
+Please pass me the sugar.
+＝ Please pass the sugar ___ me.|to
+
+After Mike has dinner, he always takes a walk.
+＝ Mike always takes a walk ___ he has dinner.|after
+（after 接先發生的事）
+
+Before Vicky eats, she washes her hands.
+＝ Vicky washes her hands ___ she eats.|before
+（before 接後發生的事）
+
+My father went to work after he took me to school.
+（用 before 改寫）|My father took me to school before he went to work.
+
+Wendy usually ___ (watch) TV after she does her homework.|watches
+（主要子句和從屬子句時態一致，現在的習慣用現在簡單式）
+
+The students ___ (clean) the classroom before they had math class.|cleaned
+（had 是過去式，主要子句也用過去式）
+
+___ some water after you exercise.（運動完要喝點水）|Drink
+（主要子句可以是祈使句）
+
+___ we have free time, we play video games.|When
+（When 子句放前面要加逗號）
+
+A: ___ computer is this?
+B: It's ___.（我的）|Whose / mine
+
+This is my camera.
+＝ This camera is ___.|mine
+（mine ＝ my＋名詞）`;
+const CHI=`攫|用爪抓取。
+震懾|震驚恐懼。
+氣脫委頓|失神無力、疲乏困頓。
+匍匐|伏地爬行。
+肆虐|任意作惡為害。
+氣勢萬鈞|形容氣勢雄偉壯盛。
+行「潦」|積水。
+魂牽夢縈|形容極為思念，連夢中都無法忘懷。
+熹微|陽光微弱的樣子。
+啟蒙|開導、啟發。
+啟「蒙」|無知、不懂事理。
+滂沱|雨勢盛大的樣子。
+纖纖|細長柔美的樣子。
+脈脈|含情凝視的樣子。
+擢素手|舉起白嫩的手。
+成「章」|織品上縱橫交錯的紋理。
+機杼|織布機。
+反哺|引申為報答父母的恩情。
+斯徒輩|這一類的人。
+經年|形容時間長久。`;
+function parse(txt){const out=[];txt.split('\n').forEach(l=>{const i=l.indexOf('|');if(i>=0){out.push([l.slice(0,i),l.slice(i+1)]);}else if(out.length){const o=out[out.length-1];if(o[1]===undefined)o[0]+='\n'+l;else o[1]+='\n'+l;}});return out;}
+function parseBlocks(txt){return txt.split(/\n\s*\n/).map(b=>{const i=b.indexOf('|');return[b.slice(0,i).trim(),b.slice(i+1).trim()];});}
+
+/* type: 'en' = type English, 'zh' = type Chinese meaning */
+const DECKS=[
+ {id:'en1',name:'英文 U1 單字',c:parse(V1),type:'en',q:1,a:0},
+ {id:'en2',name:'英文 U2 單字',c:parse(V2),type:'en',q:1,a:0},
+ {id:'ens',name:'英文 課內精選句',c:parse(SENT),type:'sen',q:1,a:0},
+ {id:'eng',name:'英文 文法例句',c:parseBlocks(GRAM)},
+ {id:'chi',name:'國文 解釋題庫',c:parse(CHI),type:'zh',q:0,a:1}
+];
+
+/* ---------- compare helpers ---------- */
+function normEn(s){return s.replace(/[’‘]/g,"'").replace(/[.?!]/g,'').replace(/\s+/g,' ').trim().toLowerCase();}
+function normSen(s){return s.replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim();}
+const H2F={',':'，','.':'。',';':'；',':':'：','!':'！','?':'？','(':'（',')':'）'};
+function normZh(s){return s.replace(/\s+/g,'').replace(/[,.;:!?()]/g,c=>H2F[c]);}
+function lev(a,b){const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+/* mark tokens of correct that are not in LCS with user's tokens */
+function markMissing(correct,user){const m=correct.length,n=user.length;const L=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=m-1;i>=0;i--)for(let j=n-1;j>=0;j--)L[i][j]=correct[i]===user[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  const hit=new Array(m).fill(false);let i=0,j=0;while(i<m&&j<n){if(correct[i]===user[j]){hit[i]=true;i++;j++;}else if(L[i+1][j]>=L[i][j+1])i++;else j++;}
+  return hit;}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- flashcards ---------- */
+let active=null,queue=[],flipped=false,onlyNew=true,rev=false,mode='type',typed='',result=null;
+const kid=(d,i)=>d.id+':'+i;
+function knownCount(d){return d.c.filter((_,i)=>S.known[kid(d,i)]).length;}
+function renderDecks(){
+  $('deckView').hidden=true;$('deckList').hidden=false;active=null;
+  $('deckList').innerHTML='<div class="decks">'+DECKS.map((d,i)=>{const k=knownCount(d),n=d.c.length;
+    return '<button class="deck" data-k="'+i+'"><b>'+d.name+'</b><small>記住 '+k+' / '+n+(d.type?'・可打字練習':'')+'</small><div class="bar green"><i style="width:'+Math.round(k/n*100)+'%"></i></div></button>';}).join('')+'</div>';
+}
+$('deckList').addEventListener('click',e=>{const b=e.target.closest('.deck');if(!b)return;openDeck(DECKS[+b.dataset.k]);});
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function openDeck(d){active=d;rev=false;mode=d.type?'type':'flip';build();}
+function build(){queue=shuffle(active.c.map((_,i)=>i).filter(i=>!onlyNew||!S.known[kid(active,i)]));flipped=false;typed='';result=null;drawCard();}
+function nextCard(knewIt){const i=queue.shift();
+  if(knewIt){S.known[kid(active,i)]=1;save();}else{queue.splice(Math.min(queue.length,3),0,i);}
+  flipped=false;typed='';result=null;drawCard(true);}
+
+function grade(){const d=active,c=d.c[queue[0]];const ans=c[d.a];const u=typed;
+  if(d.type==='en'){const ok=normEn(u)===normEn(ans);
+    const hit=markMissing([...ans.toLowerCase()],[...u.trim().toLowerCase()]);
+    result={ok,html:[...ans].map((ch,k)=>hit[k]?esc(ch):'<mark>'+esc(ch)+'</mark>').join(''),user:u};}
+  else if(d.type==='sen'){const A=normSen(ans).split(' '),U=normSen(u).split(' ').filter(Boolean);const ok=A.join(' ')===U.join(' ');
+    const hit=markMissing(A,U);result={ok,html:A.map((w,k)=>hit[k]?esc(w):'<mark>'+esc(w)+'</mark>').join(' '),user:u};}
+  else{const A=[...normZh(ans)],U=[...normZh(u)];const dist=lev(A,U);const ok=dist===0;
+    const hit=markMissing(A,U);result={ok,score:Math.max(0,5-dist),html:A.map((ch,k)=>hit[k]?esc(ch):'<mark>'+esc(ch)+'</mark>').join(''),user:u};}
+  drawCard();}
+
+function drawCard(focus){
+  $('deckList').hidden=true;$('deckView').hidden=false;const d=active;const k=knownCount(d),n=d.c.length;
+  let h='<div class="fc-top"><button class="back" id="fcBack">‹ 所有小卡</button><div class="chips">';
+  if(d.type)h+='<button class="chip'+(mode==='type'?' on':'')+'" id="fcMode">'+(mode==='type'?'打字練習':'翻卡練習')+'</button>';
+  if(d.type==='en'&&mode==='flip')h+='<button class="chip'+(rev?' on':'')+'" id="fcRev">'+(rev?'中 → 英':'英 → 中')+'</button>';
+  h+='<button class="chip'+(onlyNew?' on':'')+'" id="fcNew">只練不熟的</button></div></div>';
+  if(!queue.length){
+    h+='<div class="empty"><b>'+(onlyNew&&k===n?'這組全部記住了':'這輪練完了')+'</b>記住 '+k+' / '+n+'</div><div class="fc-btns"><button class="btn" id="fcAgain">再練一輪</button><button class="btn" id="fcReset">清除記錄重來</button></div>';
+    $('deckView').innerHTML=h;return;
   }
-  t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, action ? 6000 : 3500);
-}
-
-/* ---------- 登入 ---------- */
-async function init(){
-  const { data: { session } } = await db.auth.getSession();
-  session ? enter() : leave();
-  db.auth.onAuthStateChange((ev, s) => setTimeout(() => s ? enter() : leave(), 0));
-}
-async function enter(){
-  if (entered) return;
-  entered = true;
-  $('login').hidden = true; $('app').hidden = false; $('tabbar').hidden = false;
-  await loadAll();
-}
-function leave(){
-  entered = false; recipes = [];
-  $('app').hidden = true; $('tabbar').hidden = true; $('login').hidden = false;
-}
-$('loginForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const err = $('lErr'); err.hidden = true; $('lBtn').disabled = true;
-  const { error } = await db.auth.signInWithPassword({ email: $('lEmail').value.trim(), password: $('lPass').value });
-  $('lBtn').disabled = false;
-  if (error){ err.textContent = '登入失敗：Email 或密碼不正確，請再試一次。'; err.hidden = false; }
-  else $('lPass').value = '';
-});
-$('logout').addEventListener('click', () => db.auth.signOut());
-
-async function loadAll(){
-  const rs = await Promise.all([
-    db.from('recipes').select('*').order('name'),
-    db.from('shift_settings').select('*'),
-    db.from('weekday_settings').select('*'),
-    db.from('category_settings').select('*')
-  ]);
-  const bad = rs.find(x => x.error);
-  if (bad){ toast('讀取失敗：' + bad.error.message, true); return; }
-  recipes = rs[0].data; byId = Object.fromEntries(recipes.map(r => [r.id, r]));
-  shiftSet = Object.fromEntries(rs[1].data.map(x => [x.shift, x]));
-  weekdaySet = Object.fromEntries(rs[2].data.map(x => [x.weekday, x.day_type]));
-  catSet = Object.fromEntries(rs[3].data.map(x => [x.category, x.repeat_window_days]));
-  show('menu');
-}
-
-/* ---------- 頁面切換 ---------- */
-const TITLES = { menu:'本週菜單', shop:'待買', shift:'爸爸班別', recipes:'食譜' };
-async function show(v){
-  view = v;
-  $('vMenu').hidden = v !== 'menu'; $('vShop').hidden = v !== 'shop'; $('vShift').hidden = v !== 'shift'; $('vRecipes').hidden = v !== 'recipes';
-  $('add').hidden = v !== 'recipes';
-  $('pageTitle').textContent = TITLES[v];
-  document.querySelectorAll('#tabbar button').forEach(b => { if (b.dataset.v === v) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
-  if (v === 'menu') await renderMenu();
-  if (v === 'shop') await renderShop();
-  if (v === 'shift') await renderShift();
-  if (v === 'recipes') renderRecipes();
-}
-$('tabbar').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.v); });
-
-/* ---------- 通用選單面板 ---------- */
-function openPick(title, html, handler){
-  $('pickTitle').textContent = title; $('pickBody').innerHTML = html; pickHandler = handler;
-  if (!$('pick').open) $('pick').showModal();
-}
-const closePick = () => { if ($('pick').open) $('pick').close(); };
-$('pickBody').addEventListener('click', e => { const b = e.target.closest('button'); if (b && pickHandler) pickHandler(b); });
-$('pickClose').addEventListener('click', closePick);
-// 頁內確認視窗：回傳 true（按確定）或 false（關閉）
-const ask = (title, msg, ok = '確定', danger = false) => new Promise(res => {
-  let yes = false;
-  openPick(title, `<p class="askmsg">${esc(msg)}</p><button type="button" class="okbtn${danger ? ' danger' : ''}">${esc(ok)}</button>`, () => { yes = true; closePick(); });
-  const onClose = () => { if ($('pick').open) return; $('pick').removeEventListener('close', onClose); res(yes); };
-  $('pick').addEventListener('close', onClose);
-});
-$('pick').addEventListener('click', e => { if (e.target === $('pick')) closePick(); });
-
-/* =====================================================
-   排菜引擎（純函式；之後可原封不動搬到雲端函式）
-   ===================================================== */
-/*ENGINE_START*/
-const addUse = (m, id, ds) => { if (!m.has(id)) m.set(id, []); m.get(id).push(ds); };
-const dist = (uses, id, ds) => {
-  let best = Infinity;
-  for (const u of (uses.get(id) || [])) if (u !== ds) best = Math.min(best, Math.abs(dayDiff(u, ds)));
-  return best;
-};
-
-// 從符合硬規則的食譜中挑一道；軟規則（重複窗口、食材重疊）用扣分處理，庫存不足時自動放寬
-function choose(uses, ds, slot, beefOk, chosen, exclude){
-  const egg = chosen.some(c => c.ingredients.includes('蛋'));
-  const tagsUsed = new Set(chosen.flatMap(c => c.ingredients));
-  const idsUsed = new Set(chosen.map(c => c.id));
-  const win = catSet[slot];
-  let best = null, bs = -1e9;
-  for (const r of recipes){
-    if (!r.active || r.category !== slot || idsUsed.has(r.id) || (exclude && exclude.has(r.id))) continue;
-    if (r.has_beef && !beefOk) continue;                       // 硬規則：含牛只排爸爸不在家的日子
-    if (egg && r.ingredients.includes('蛋')) continue;         // 硬規則：同一餐蛋類最多 1 道
-    const dd = dist(uses, r.id, ds);
-    let s = Math.min(dd, 60) + (r.kid_rating || 3) * 2 + Math.random() * 8;
-    if (win != null ? dd < win : dd <= 1) s -= 100;            // 軟規則：重複窗口（副菜只避免連續兩天）
-    s -= r.ingredients.filter(t => tagsUsed.has(t)).length * 25; // 軟規則：同餐食材不重疊
-    if (beefOk && r.has_beef) s += 6;
-    if (s > bs){ bs = s; best = r; }
-  }
-  return best;
-}
-
-function planDay(uses, ds, type, sh){
-  const cfg = shiftSet[sh] || { headcount: 4, fiber_count: 2 };
-  const beefOk = ABSENT.includes(sh);
-  const slots = type === '一鍋'
-    ? [['一鍋懶人料理', 1]]
-    : [['主菜',1], ['副菜',1], ['湯',1], ...Array.from({ length: cfg.fiber_count }, (_, i) => ['纖維質', i+1])];
-  const chosen = [], rows = [];
-  for (const [slot, pos] of slots){
-    const r = choose(uses, ds, slot, beefOk, chosen);
-    if (r){ chosen.push(r); rows.push({ meal_date: ds, slot, position: pos, recipe_id: r.id }); addUse(uses, r.id, ds); }
-  }
-  return { headcount: cfg.headcount, rows, missing: slots.length - rows.length };
-}
-/*ENGINE_END*/
-
-/* ---------- 本週菜單 ---------- */
-const bySlot = (a, b) => SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot) || a.position - b.position;
-
-async function loadWeek(){
-  const s = fmt(weekStart), e = fmt(addDays(weekStart, 6));
-  const rs = await Promise.all([
-    db.from('shifts').select('*').gte('shift_date', s).lte('shift_date', e),
-    db.from('meals').select('*').gte('meal_date', s).lte('meal_date', e),
-    db.from('meal_items').select('*').gte('meal_date', s).lte('meal_date', e)
-  ]);
-  const bad = rs.find(x => x.error);
-  if (bad){ toast('讀取失敗：' + bad.error.message, true); return false; }
-  wShifts = Object.fromEntries(rs[0].data.map(x => [x.shift_date, x]));
-  wMeals = Object.fromEntries(rs[1].data.map(x => [x.meal_date, x]));
-  wItems = rs[2].data;
-  return true;
-}
-async function renderMenu(){ if (await loadWeek()) drawMenu(); }
-
-const KINDS = ['牛','豬','雞','海鮮','蛋','豆腐','蔬菜','湯','甜湯','一鍋'];
-const PROT = ['牛','豬','雞','海鮮','蛋','豆腐'];
-// 依食材判斷顏色分類：牛 > 豬 > 雞 > 海鮮 > 蛋 > 豆腐，其餘依分類
-function kindOf(r){
-  if (!r) return '一鍋';
-  const t = r.ingredients || [];
-  if (r.has_beef || t.includes('牛')) return '牛';
-  if (t.includes('豬')) return '豬';
-  if (t.includes('雞')) return '雞';
-  if (['魚','蝦','海鮮'].some(x => t.includes(x))) return '海鮮';
-  if (t.includes('蛋')) return '蛋';
-  if (t.includes('豆腐')) return '豆腐';
-  return { '纖維質':'蔬菜', '湯':'湯', '甜湯':'甜湯' }[r.category] || '一鍋';
-}
-const legendHtml = ks => ks.map(k => `<span><i class="dot k-${k}"></i>${k}</span>`).join('');
-function renderLegends(){ $('legMenu').innerHTML = legendHtml(KINDS.filter(k => k !== '甜湯')); $('legRec').innerHTML = legendHtml(KINDS); }
-function dishChip(it){
-  const r = byId[it.recipe_id], k = kindOf(r);
-  return `<button type="button" class="dish k-${k}" data-item="${esc(it.id)}">${k === '牛' ? '<i class="bf">牛</i>' : ''}${esc(r ? r.name : '（已刪除）')}</button>`;
-}
-
-function weekRow(i){
-  const d = addDays(weekStart, i), ds = fmt(d), m = wMeals[ds], sh = wShifts[ds] && wShifts[ds].shift, cfg = shiftSet[sh];
-  const type = m ? m.day_type : weekdaySet[i+1];
-  const its = wItems.filter(x => x.meal_date === ds).sort(bySlot);
-  const hc = type === '公休' ? '' : (m && m.headcount ? m.headcount : (cfg ? cfg.headcount : 4));
-  const flags = (m && m.status === '確認' ? '<span class="ok">✓</span>' : '') +
-    (m && type !== '公休' && cfg && m.headcount !== cfg.headcount ? '<span class="wn">!</span>' : '');
-  const l3 = sh ? `<span class="sq">${sh === '休假' ? '休' : esc(sh)}</span>${hc ? `<b>${hc}人</b>` : ''}` : '<span class="no">未輸入</span>';
-  const dc = `<button type="button" class="dc" data-d="${ds}"><span><b>週${WD[d.getDay()]}</b>${flags}</span><span class="d1">${md(ds)}</span><span class="d2">${l3}</span></button>`;
-  let cells;
-  if (type === '公休') cells = `<div class="em">${m && m.status === '跳過' ? '不排餐' : '公休'}</div>`;
-  else if (!its.length) cells = `<div class="em">尚未排餐</div>`;
-  else if (type === '一鍋') cells = `<div class="wc span">${its.map(dishChip).join('')}</div>`;
-  else cells = ['主菜','副菜','纖維質','湯'].map(s => `<div class="wc">${its.filter(x => x.slot === s).map(dishChip).join('')}</div>`).join('');
-  return `<div class="wr" data-d="${ds}">${dc}${cells}</div>`;
-}
-
-function drawMenu(){
-  const e = addDays(weekStart, 6);
-  $('weekLabel').textContent = `${weekStart.getMonth()+1}/${weekStart.getDate()} – ${e.getMonth()+1}/${e.getDate()}`;
-  let noShift = 0;
-  for (let i = 0; i < 7; i++){
-    const ds = fmt(addDays(weekStart, i)), m = wMeals[ds];
-    if ((m ? m.day_type : weekdaySet[i+1]) !== '公休' && !(wShifts[ds] && wShifts[ds].shift)) noShift++;
-  }
-  $('mClear').disabled = !Object.keys(wMeals).length;
-  $('days').innerHTML = `<div class="wr hd"><span></span><span>主菜</span><span>副菜</span><span>纖維質</span><span>湯</span></div>` +
-    Array.from({ length: 7 }, (_, i) => weekRow(i)).join('');
-  $('menuNote').innerHTML = noShift ? `<span class="warn">${noShift} 天尚未輸入班別</span>，先以 4 人、不含牛排。請到「爸爸班別」輸入。` : '';
-}
-
-$('mClear').addEventListener('click', async () => {
-  const days = Object.keys(wMeals); if (!days.length) return toast('本週沒有菜單可以清空');
-  if (!(await ask('清空本週菜單？', `會移除這週已排的 ${wItems.length} 道菜，包含已確認的日子，也會取消「不排餐」與改排的設定，全部回到預設。`, '清空', true))) return;
-  const bm = Object.values(wMeals).map(m => ({ meal_date: m.meal_date, day_type: m.day_type, headcount: m.headcount, status: m.status, notes: m.notes ?? null }));
-  const bi = wItems.map(x => ({ meal_date: x.meal_date, slot: x.slot, position: x.position, recipe_id: x.recipe_id }));
-  const r = await db.from('meals').delete().in('meal_date', days);
-  if (r.error) return toast('清空失敗：' + r.error.message, true);
-  await renderMenu();
-  toast('已清空本週菜單', false, { label: '復原', fn: async () => {
-    let w = await db.from('meals').insert(bm);
-    if (!w.error && bi.length) w = await db.from('meal_items').insert(bi);
-    if (w.error) return toast('復原失敗：' + w.error.message, true);
-    await renderMenu();
-  } });
-});
-$('wPrev').addEventListener('click', () => { weekStart = addDays(weekStart, -7); renderMenu(); });
-$('wNext').addEventListener('click', () => { weekStart = addDays(weekStart, 7); renderMenu(); });
-$('gen').addEventListener('click', async () => {
-  if (wItems.length && !(await ask('重排本週菜單？', '本週已有菜單，重排會覆蓋尚未確認的日子。\n已確認與「不排餐」的日子會保留。', '重排'))) return;
-  generate(null, false);
-});
-
-async function generate(only, force, overrides){
-  const targets = [];
-  for (let i = 0; i < 7; i++){
-    const ds = fmt(addDays(weekStart, i)), m = wMeals[ds];
-    if (only && !only.includes(ds)) continue;
-    if (!force && m && ['確認','已煮','跳過'].includes(m.status)) continue;
-    targets.push(ds);
-  }
-  if (!targets.length) return toast('沒有需要排的日子（已確認或不排餐的日子會保留）');
-  $('gen').disabled = true;
-  try {
-    const h = await db.from('meal_items').select('meal_date,recipe_id')
-      .gte('meal_date', fmt(addDays(weekStart, -35))).lte('meal_date', fmt(addDays(weekStart, 41)));
-    if (h.error) return toast('讀取歷史菜單失敗：' + h.error.message, true);
-    const uses = new Map();
-    h.data.filter(x => !targets.includes(x.meal_date)).forEach(x => addUse(uses, x.recipe_id, x.meal_date));
-    const mealRows = [], itemRows = []; let missing = 0, unknownShift = 0;
-    for (const ds of targets){
-      const m0 = wMeals[ds], sh = wShifts[ds] && wShifts[ds].shift;
-      const type = (overrides && overrides[ds]) || (m0 && (m0.day_type === '正餐' || m0.day_type === '一鍋') ? m0.day_type : weekdaySet[isoWd(parse(ds))]);
-      if (type === '公休'){ mealRows.push({ meal_date: ds, day_type: '公休', headcount: null, status: '草稿' }); continue; }
-      if (!sh) unknownShift++;
-      const p = planDay(uses, ds, type, sh);
-      missing += p.missing;
-      mealRows.push({ meal_date: ds, day_type: type, headcount: p.headcount, status: '草稿' });
-      itemRows.push(...p.rows);
+  const c=d.c[queue[0]];
+  if(mode==='type'){
+    const q=c[d.q];
+    h+='<div class="card short"><span class="face'+(q.length>14?' long':'')+'" id="fcFace"></span><span class="hint">'+(d.type==='zh'?'寫出解釋（含標點）':d.type==='sen'?'翻成英文':'拼出英文')+'</span></div>';
+    if(!result){
+      h+='<input class="ans" id="fcIn" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="在這裡輸入答案">';
+      h+='<div class="fc-btns"><button class="btn" id="fcGive">不會，看答案</button><button class="btn primary" id="fcCheck">對答案</button></div>';
+    }else{
+      const r=result;
+      h+='<div class="res '+(r.ok?'ok':'ng')+'"><div class="st">'+(r.ok?'答對了':'還差一點')+(r.score!==undefined?'　'+r.score+' / 5 分':'')+'</div>'
+        +'<div class="row"><small>正確</small>'+r.html+'</div>'
+        +(r.ok?'':'<div class="row"><small>你寫</small>'+(r.user?esc(r.user):'（空白）')+'</div>')+'</div>';
+      h+=r.ok?'<div class="fc-btns"><span></span><button class="btn yes" id="fcNextOk">下一張</button></div>'
+             :'<div class="fc-btns"><button class="btn" id="fcOverride">其實我對了</button><button class="btn no" id="fcNextNg">下一張</button></div>';
     }
-    let r = await db.from('meals').delete().in('meal_date', targets);
-    if (!r.error) r = await db.from('meals').insert(mealRows);
-    if (!r.error && itemRows.length) r = await db.from('meal_items').insert(itemRows);
-    if (r.error) return toast('儲存菜單失敗：' + r.error.message, true);
-    await renderMenu();
-    toast(missing ? `已排好，但有 ${missing} 個位置找不到可用的食譜，請補充食譜。` : (unknownShift ? `已排好。有 ${unknownShift} 天沒有班別，先以 4 人排。` : '已排好本週菜單'), !!missing);
-  } finally { $('gen').disabled = false; }
-}
-
-$('days').addEventListener('click', e => {
-  const dish = e.target.closest('.dish');
-  if (dish) return swapSheet(dish.dataset.item);
-  const dc = e.target.closest('.dc');
-  if (dc) dayMenu(dc.dataset.d);
-});
-function dayMenu(ds){
-  const d = parse(ds), wdType = weekdaySet[isoWd(d)], m = wMeals[ds], type = m ? m.day_type : wdType;
-  const its = wItems.filter(x => x.meal_date === ds), has = its.length > 0;
-  const sh = wShifts[ds] && wShifts[ds].shift, cfg = shiftSet[sh], skipped = m && m.status === '跳過';
-  const info = [sh ? (sh === '休假' ? '休假' : sh + '班') : '班別未輸入',
-    skipped ? '這天不排餐' : (type === '公休' ? '公休' : `${m && m.headcount ? m.headcount : (cfg ? cfg.headcount : 4)} 人 · ${type}`),
-    m && m.status === '確認' ? '已確認' : '',
-    type !== '公休' && type !== wdType ? `預設為${wdType}` : ''].filter(Boolean).join(' · ');
-  // 每天都可以選「正餐」或「一鍋」；預設的排法（週三、週日一鍋，週六公休，其餘正餐）不變
-  const opts = [['plan', '正餐'], ['plan', '一鍋']].map(([a, t]) => [a, t, (type === t && has ? '重排' : '排') + (t === '一鍋' ? '一鍋' : '正餐'), type === t && has]);
-  if (has) opts.push(['lock', '', m && m.status === '確認' ? '取消確認' : '確認這天', false]);
-  if (type !== '公休') opts.push(['skip', '', '不排餐', false]);
-  openPick(`週${WD[d.getDay()]} ${md(ds)}`, `<p class="askmsg">${esc(info)}</p>` +
-    opts.map(([a, t, l, cur]) => `<button data-a="${a}" data-t="${t}">${l}${cur ? '<small>目前</small>' : ''}</button>`).join(''),
-    btn => { closePick(); dayAct(ds, btn.dataset.a, btn.dataset.t || undefined); });
-}
-async function dayAct(ds, act, t){
-  const m = wMeals[ds];
-  if (act === 'redo'){
-    if (m && m.status === '確認' && !(await ask('重排這天？', '這天已確認，重排會覆蓋目前的菜。', '重排'))) return;
-    return generate([ds], true);
+  }else{
+    let f=c[0],b=c[1];if(rev){f=c[1];b=c[0];}
+    const txt=flipped?b:f;
+    h+='<button class="card'+(flipped?' flipped':'')+'" id="fcCard"><span class="face'+(txt.length>16?' long':'')+'" id="fcFace"></span><span class="hint">'+(flipped?'':'點一下看答案')+'</span></button>';
+    h+='<div class="fc-btns"><button class="btn no" id="fcNo">還不熟</button><button class="btn yes" id="fcYes">記住了</button></div>';
   }
-  if (act === 'unskip') return generate([ds], true);
-  if (act === 'plan'){
-    if (m && m.status === '確認' && !(await ask('重排這天？', '這天已確認，重排會覆蓋目前的菜。', '重排'))) return;
-    return generate([ds], true, { [ds]: t });
-  }
-  if (act === 'lock'){
-    const r = await db.from('meals').update({ status: m.status === '確認' ? '草稿' : '確認' }).eq('meal_date', ds);
-    if (r.error) return toast('更新失敗：' + r.error.message, true);
-    return renderMenu();
-  }
-  if (act === 'skip'){
-    if (!(await ask('這天不排餐？', '例如外食、出遊。已排的菜會移除。', '不排餐'))) return;
-    let r = await db.from('meals').delete().in('meal_date', [ds]);
-    if (!r.error && weekdaySet[isoWd(parse(ds))] !== '公休') r = await db.from('meals').insert({ meal_date: ds, day_type: '公休', headcount: null, status: '跳過' });
-    if (r.error) return toast('更新失敗：' + r.error.message, true);
-    return renderMenu();
-  }
+  h+='<div class="fc-info">這輪剩 '+queue.length+' 張・已記住 '+k+' / '+n+'</div>';
+  $('deckView').innerHTML=h;
+  const face=$('fcFace');
+  if(mode==='type')face.textContent=c[d.q];
+  else face.textContent=flipped?(rev?c[0]:c[1]):(rev?c[1]:c[0]);
+  const inp=$('fcIn');
+  if(inp){inp.value=typed;inp.addEventListener('input',()=>{typed=inp.value;});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();typed=inp.value;grade();}});
+    if(focus)inp.focus();}
+}
+$('deckView').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+  switch(t.id){
+    case 'fcBack':renderDecks();break;
+    case 'fcMode':mode=mode==='type'?'flip':'type';flipped=false;result=null;typed='';drawCard();break;
+    case 'fcRev':rev=!rev;flipped=false;drawCard();break;
+    case 'fcNew':onlyNew=!onlyNew;build();break;
+    case 'fcCard':flipped=!flipped;drawCard();break;
+    case 'fcNo':nextCard(false);break;
+    case 'fcYes':nextCard(true);break;
+    case 'fcCheck':typed=$('fcIn').value;grade();break;
+    case 'fcGive':typed='';grade();break;
+    case 'fcNextOk':nextCard(true);break;
+    case 'fcOverride':nextCard(true);break;
+    case 'fcNextNg':nextCard(false);break;
+    case 'fcAgain':build();break;
+    case 'fcReset':active.c.forEach((_,i)=>delete S.known[kid(active,i)]);save();build();break;
+  }});
+
+/* ---------- overview ---------- */
+const SUBJ=[['國',['國']],['英',['英']],['數',['數']],['自',['自']],['社',['歷','地','公','社']],['小卡',['卡']]];
+function renderOverview(){
+  let k=0,n=0;const sc={};SUBJ.forEach(x=>sc[x[0]]=[0,0]);
+  DAYS.forEach((D,di)=>D.t.forEach((x,ti)=>{const d=!!S.done[tid(di,ti)];n++;if(d)k++;
+    const g=SUBJ.find(z=>z[1].includes(x[0]));if(g){sc[g[0]][1]++;if(d)sc[g[0]][0]++;}}));
+  const p=Math.round(k/n*100);$('ovBar').style.width=p+'%';$('ovTxt').textContent=p+'%（'+k+'/'+n+'）';
+  $('ovSubj').innerHTML=SUBJ.map(z=>{const[a,b]=sc[z[0]];const q=b?Math.round(a/b*100):0;
+    return '<div class="srow"><b>'+z[0]+'</b><div class="bar green"><i style="width:'+q+'%"></i></div><span>'+a+'/'+b+'</span></div>';}).join('');
+  const t=todayStr();
+  $('ovDays').innerHTML='<tr><th>日期</th><th>任務</th><th>🎃 實際/計畫</th><th>英文小考</th></tr>'+DAYS.map((D,di)=>{
+    const[a,b]=dayStat(di);const plan=D.t.reduce((s,x)=>s+x[3],0);const q=S.quiz&&S.quiz[D.d];
+    return '<tr class="go'+(D.d===t?' today':'')+'" data-d="'+di+'"><td>'+D.label+'（'+D.w+'）</td><td class="num">'+(a===b?'✓ ':'')+a+'/'+b+'</td><td class="num">'+(S.pomo[D.d]||0)+' / '+plan+'</td><td class="num">'+(q?q.best+' 分':'—')+'</td></tr>';}).join('');
+  $('ovList').innerHTML=DAYS.map((D,di)=>{const[a,b]=dayStat(di);
+    return '<li><div class="dh">'+D.label+'（'+D.w+'）<span>'+a+'/'+b+'</span></div>'+D.t.map((x,ti)=>{const d=S.done[tid(di,ti)];
+      return '<div class="it'+(d?' ok':'')+'"><i>'+(d?'✓':'○')+'</i><span>'+x[0]+'｜'+x[1]+'</span></div>';}).join('')+'</li>';}).join('');
+}
+$('ovDays').addEventListener('click',e=>{const r=e.target.closest('tr.go');if(!r)return;cur=+r.dataset.d;renderPlan();goTab('plan');});
+
+/* ---------- daily English quiz ---------- */
+S.quiz=S.quiz||{};S.wrong=S.wrong||{};
+let QZ={running:false};
+function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
+  return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return (h>>>0)/4294967296;};}
+function pickQuiz(date,attempt){
+  const rnd=seeded(date+'#'+attempt);const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const useU2=date>='2026-10-10';
+  let pool=DECKS[0].c.map((_,i)=>'en1:'+i);if(useU2)pool=pool.concat(DECKS[1].c.map((_,i)=>'en2:'+i));
+  const wrong=sh(pool.filter(k=>S.wrong[k])).slice(0,4);
+  const rest=sh(pool.filter(k=>!wrong.includes(k)));
+  const words=sh(wrong.concat(rest.slice(0,10-wrong.length)));
+  const sPool=DECKS[2].c.map((_,i)=>'ens:'+i).filter((_,i)=>useU2||i<4);
+  const sw=sh(sPool.filter(k=>S.wrong[k])).slice(0,1);
+  const sents=sw.concat(sh(sPool.filter(k=>!sw.includes(k))).slice(0,2-sw.length));
+  return words.concat(sents);
+}
+function cardOf(key){const[id,i]=key.split(':');const d=DECKS.find(x=>x.id===id);return{d,c:d.c[+i],key};}
+function renderQuiz(){
+  const t=todayStr();const q=S.quiz[t];const useU2=t>='2026-10-10';
+  $('quizBox').innerHTML='<div class="qintro"><h2>'+(+t.slice(5,7))+'/'+(+t.slice(8))+' 英文小考</h2>'
+    +'<p>單字 10 題（每題 8 分）＋精選句 2 題（每題 10 分）</p>'
+    +'<p>範圍：'+(useU2?'U1–U2':'U1')+'，上次錯的字會優先再考</p>'
+    +'<div class="best">'+(q?'今天最高 <b>'+q.best+'</b> 分・考過 '+q.tries+' 次':'今天還沒考')+'</div>'
+    +'<button class="btn primary" id="qStart" style="min-width:160px;padding:14px">'+(q?'再考一次':'開始考試')+'</button></div>'
+    +quizHistory();
+  $('qStart').onclick=startQuiz;
+}
+function quizHistory(){const ks=Object.keys(S.quiz).sort();if(!ks.length)return '';
+  return '<div class="qhist">'+ks.map(k=>(+k.slice(5,7))+'/'+(+k.slice(8))+' '+S.quiz[k].best+' 分').join('　')+'</div>';}
+function startQuiz(){const t=todayStr();const tries=(S.quiz[t]?S.quiz[t].tries:0);
+  QZ={running:true,date:t,items:pickQuiz(t,tries),idx:0,ans:[]};drawQ(true);}
+function drawQ(focus){
+  const it=cardOf(QZ.items[QZ.idx]);const isS=it.d.id==='ens';const n=QZ.items.length;
+  $('quizBox').innerHTML='<div class="qprog"><span>第 '+(QZ.idx+1)+' / '+n+' 題・'+(isS?'整句翻譯':'單字拼寫')+'</span><span>'+(isS?'10':'8')+' 分</span></div>'
+    +'<div class="bar"><i style="width:'+(QZ.idx/n*100)+'%"></i></div>'
+    +'<div class="card short"><span class="face'+(it.c[1].length>14?' long':'')+'" id="qFace"></span><span class="hint">'+(isS?'翻成英文':'拼出英文')+'</span></div>'
+    +'<input class="ans" id="qIn" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" placeholder="在這裡輸入答案">'
+    +'<div class="fc-btns"><button class="btn" id="qQuit">放棄這次</button><button class="btn primary" id="qNext">'+(QZ.idx===n-1?'交卷':'下一題')+'</button></div>';
+  $('qFace').textContent=it.c[1];
+  const inp=$('qIn');const go=()=>{QZ.ans[QZ.idx]=inp.value;if(QZ.idx<n-1){QZ.idx++;drawQ(true);}else finishQ();};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();go();}});
+  $('qNext').onclick=go;$('qQuit').onclick=()=>{QZ={running:false};renderQuiz();};
+  if(focus)inp.focus();
+}
+function finishQ(){
+  let total=0;const rows=QZ.items.map((key,k)=>{const it=cardOf(key);const u=QZ.ans[k]||'';const ans=it.c[0];let pts,ok,html;
+    if(it.d.id==='ens'){const A=normSen(ans).split(' '),U=normSen(u).split(' ').filter(Boolean);ok=A.join(' ')===U.join(' ');
+      const hit=markMissing(A,U);pts=ok?10:Math.round(hit.filter(Boolean).length/A.length*10*0.8);
+      html=A.map((w,j)=>hit[j]?esc(w):'<mark>'+esc(w)+'</mark>').join(' ');}
+    else{ok=normEn(u)===normEn(ans);pts=ok?8:0;const hit=markMissing([...ans.toLowerCase()],[...u.trim().toLowerCase()]);
+      html=[...ans].map((ch,j)=>hit[j]?esc(ch):'<mark>'+esc(ch)+'</mark>').join('');}
+    total+=pts;
+    if(ok)delete S.wrong[key];else{S.wrong[key]=1;delete S.known[key];}
+    return '<li><div class="q">'+esc(it.c[1])+'</div><span class="'+(ok?'ok':'ng')+'">'+(ok?'✓ ':'✗ ')+'</span>'+html
+      +(ok?'':'<div><small>你寫</small>'+(u?esc(u):'（空白）')+'</div>')+'<div class="q">'+pts+' 分</div></li>';});
+  const t=QZ.date;const prev=S.quiz[t]||{best:0,tries:0};S.quiz[t]={best:Math.max(prev.best,total),tries:prev.tries+1,last:total};
+  const di=DAYS.findIndex(D=>D.d===t);if(di>=0){const ti=DAYS[di].t.findIndex(x=>x[4]==='quiz');if(ti>=0)S.done[tid(di,ti)]=1;}
+  save();QZ={running:false};
+  const wrongN=rows.filter(r=>r.includes('class="ng"')).length;
+  $('quizBox').innerHTML='<div class="qscore"><b>'+total+'</b><span>分'+(wrongN?'・錯 '+wrongN+' 題，已加回小卡和明天的小考':'・全對！')+'</span></div>'
+    +'<ul class="qres">'+rows.join('')+'</ul>'
+    +'<div class="fc-btns"><button class="btn" id="qHome">回小考首頁</button><button class="btn primary" id="qAgain">再考一次</button></div>';
+  $('qHome').onclick=renderQuiz;$('qAgain').onclick=startQuiz;
+  renderPlan();window.scrollTo(0,0);
 }
 
-async function swapSheet(itemId){
-  const it = wItems.find(x => x.id === itemId); if (!it) return;
-  const ds = it.meal_date, sh = wShifts[ds] && wShifts[ds].shift, beefOk = ABSENT.includes(sh);
-  const h = await db.from('meal_items').select('id,meal_date,recipe_id')
-    .gte('meal_date', fmt(addDays(parse(ds), -35))).lte('meal_date', fmt(addDays(parse(ds), 35)));
-  if (h.error) return toast('讀取失敗：' + h.error.message, true);
-  const uses = new Map();
-  h.data.filter(x => x.id !== it.id).forEach(x => addUse(uses, x.recipe_id, x.meal_date));
-  const others = wItems.filter(x => x.meal_date === ds && x.id !== it.id).map(x => byId[x.recipe_id]).filter(Boolean);
-  const egg = others.some(r => r.ingredients.includes('蛋')), ids = new Set(others.map(r => r.id));
-  const list = recipes
-    .filter(r => r.active && r.category === it.slot && !ids.has(r.id) && (beefOk || !r.has_beef) && !(egg && r.ingredients.includes('蛋')))
-    .map(r => ({ r, dd: dist(uses, r.id, ds) }))
-    .sort((a, b) => b.dd - a.dd || a.r.name.localeCompare(b.r.name, 'zh-Hant'));
-  const html = `<button data-r="__rand"><b>隨機換一道</b></button>` + list.map(({ r, dd }) =>
-    `<button data-r="${esc(r.id)}"><i class="dot k-${kindOf(r)}"></i>${esc(r.name)}${r.id === it.recipe_id ? '<small>目前</small>' : ''}${r.has_beef ? '<small class="red">含牛</small>' : ''}<small>${dd >= 60 ? '近期沒吃過' : dd + ' 天前後吃過'}</small></button>`).join('');
-  openPick(`更換「${byId[it.recipe_id] ? byId[it.recipe_id].name : ''}」`, html, async btn => {
-    let rid = btn.dataset.r;
-    if (rid === '__rand'){
-      const p = choose(uses, ds, it.slot, beefOk, others, new Set([it.recipe_id]));
-      if (!p) return toast('沒有其他可換的食譜', true);
-      rid = p.id;
-    }
-    closePick();
-    const r = await db.from('meal_items').update({ recipe_id: rid }).eq('id', it.id);
-    if (r.error) return toast('更換失敗：' + r.error.message, true);
-    it.recipe_id = rid; drawMenu();
-  });
-}
-
-$('copy').addEventListener('click', async () => {
-  const lines = [`${$('weekLabel').textContent} 晚餐菜單`];
-  for (let i = 0; i < 7; i++){
-    const d = addDays(weekStart, i), ds = fmt(d), m = wMeals[ds];
-    const type = m ? m.day_type : weekdaySet[i+1];
-    const head = `週${WD[d.getDay()]} ${md(ds)}`;
-    if (type === '公休'){ lines.push(`${head} ${m && m.status === '跳過' ? '不排餐' : '公休'}`); continue; }
-    const its = wItems.filter(x => x.meal_date === ds).sort(bySlot);
-    if (!its.length){ lines.push(`${head} 尚未排餐`); continue; }
-    lines.push(`${head}（${m.headcount} 人）`);
-    SLOT_ORDER.forEach(s => {
-      const n = its.filter(x => x.slot === s).map(x => byId[x.recipe_id] ? byId[x.recipe_id].name : '').filter(Boolean);
-      if (n.length) lines.push(`${s === '一鍋懶人料理' ? '一鍋' : s}：${n.join('、')}`);
-    });
-  }
-  const text = lines.join('\n');
-  try { await navigator.clipboard.writeText(text); toast('已複製，可以貼到 LINE'); }
-  catch { openPick('複製菜單文字', `<textarea readonly id="cpText">${esc(text)}</textarea>`, () => {}); $('cpText').select(); }
-});
-
-/* ---------- 班別 ---------- */
-async function renderShift(){
-  const gs = mondayOf(monthStart), ge = addDays(gs, 41);
-  $('monthLabel').textContent = `${monthStart.getFullYear()} 年 ${monthStart.getMonth()+1} 月`;
-  const r = await db.from('shifts').select('*').gte('shift_date', fmt(gs)).lte('shift_date', fmt(ge));
-  if (r.error) return toast('讀取失敗：' + r.error.message, true);
-  const map = Object.fromEntries(r.data.map(x => [x.shift_date, x.shift]));
-  const today = fmt(new Date());
-  let h = ['一','二','三','四','五','六','日'].map(x => `<div class="h">${x}</div>`).join('');
-  for (let i = 0; i < 42; i++){
-    const d = addDays(gs, i), ds = fmt(d), sh = map[ds];
-    h += `<button type="button" class="c${sh ? ' s-' + esc(sh) : ''}${d.getMonth() !== monthStart.getMonth() ? ' out' : ''}" data-d="${ds}"><b${ds === today ? ' class="today"' : ''}>${d.getDate()}</b><span>${sh ? esc(sh) : '·'}</span></button>`;
-  }
-  $('cal').innerHTML = h;
-  if (!$('cycTo').value) $('cycTo').value = fmt(new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0));
-}
-$('mPrev').addEventListener('click', () => { monthStart = new Date(monthStart.getFullYear(), monthStart.getMonth() - 1, 1); renderShift(); });
-$('mNext').addEventListener('click', () => { monthStart = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1); renderShift(); });
-
-async function saveShift(dates, s){
-  const r = s
-    ? await db.from('shifts').upsert(dates.map(d => ({ shift_date: d, shift: s, source: '手動' })), { onConflict: 'shift_date' })
-    : await db.from('shifts').delete().in('shift_date', dates);
-  if (r.error) return toast('儲存失敗：' + r.error.message, true);
-  await renderShift();
-}
-$('cal').addEventListener('click', e => {
-  const b = e.target.closest('.c'); if (!b) return;
-  const ds = b.dataset.d;
-  openPick(`${md(ds)} 的班別`,
-    SHIFTS.map(s => `<button data-s="${s}"><b>${s === '休假' ? '休假' : s + '班'}</b></button>`).join('') + `<button data-s="">清除這天</button>`,
-    async btn => { closePick(); await saveShift([ds], btn.dataset.s || null); });
-});
-$('rGo').addEventListener('click', async () => {
-  const a = $('rFrom').value, b = $('rTo').value;
-  if (!a || !b || a > b) return toast('請選擇正確的起訖日期', true);
-  const n = dayDiff(b, a) + 1;
-  if (n > 62) return toast('一次最多填 62 天', true);
-  await saveShift(Array.from({ length: n }, (_, i) => fmt(addDays(parse(a), i))), $('rShift').value);
-  toast(`已填入 ${n} 天`);
-});
-$('cycGo').addEventListener('click', async () => {
-  const until = $('cycTo').value; if (!until) return toast('請選擇延伸到哪一天', true);
-  const r = await db.from('shifts').select('*').order('shift_date', { ascending: false }).limit(14);
-  if (r.error) return toast('讀取失敗：' + r.error.message, true);
-  if (!r.data.length) return toast('請先輸入至少一段班別，再依循環延伸', true);
-  const rows = [...r.data].reverse(), last = rows[rows.length - 1];
-  if (until <= last.shift_date) return toast(`已輸入到 ${md(last.shift_date)}，請選更晚的日期`, true);
-  let shift = last.shift, run = 1;
-  for (let i = rows.length - 2; i >= 0; i--){
-    if (rows[i].shift === shift && dayDiff(rows[i+1].shift_date, rows[i].shift_date) === 1) run++; else break;
-  }
-  let prevWork = shift !== '休假' ? shift : null;
-  if (!prevWork) for (let i = rows.length - 1; i >= 0; i--) if (rows[i].shift !== '休假'){ prevWork = rows[i].shift; break; }
-  if (!prevWork) return toast('找不到前一段上班班別，請先手動輸入一段早、中或夜', true);
-  const NEXT = { '中':'早', '早':'夜', '夜':'中' }, REST = { '中':1, '早':2, '夜':2 };
-  const out = []; let d = parse(last.shift_date);
-  while (fmt(d) < until){
-    d = addDays(d, 1);
-    if (shift !== '休假'){ if (run < 5) run++; else { shift = '休假'; run = 1; } }
-    else if (run < REST[prevWork]) run++;
-    else { shift = NEXT[prevWork]; prevWork = shift; run = 1; }
-    out.push({ shift_date: fmt(d), shift, source: '手動' });
-  }
-  const w = await db.from('shifts').upsert(out, { onConflict: 'shift_date' });
-  if (w.error) return toast('儲存失敗：' + w.error.message, true);
-  await renderShift(); toast(`已依循環填入 ${out.length} 天，請核對`);
-});
-
-/* ---------- 食譜 ---------- */
-function renderRecipes(){
-  const k = $('q').value.trim(), off = $('showOff').checked;
-  $('offCount').textContent = recipes.filter(r => !r.active).length;
-  $('tabs').hidden = !!k;
-  $('tabs').innerHTML = CATS.map(c => {
-    const n = recipes.filter(r => r.category === c && r.active).length;
-    return `<button class="pill" role="tab" type="button" data-cat="${esc(c)}" aria-selected="${c === tab}">${esc(c)}<small>${n}</small></button>`;
-  }).join('');
-  const list = recipes.filter(r => (off || r.active) &&
-    (k ? (r.name.includes(k) || r.ingredients.some(t => t.includes(k))) : r.category === tab));
-  $('grid').hidden = !list.length;
-  $('grid').innerHTML = list.map(r =>
-    `<button type="button" class="tile k-${kindOf(r)}${r.active ? '' : ' off'}" data-id="${esc(r.id)}">${esc(r.name)}${r.active ? '' : '<small>停用</small>'}${k ? `<small>${esc(r.category)}</small>` : ''}</button>`).join('');
-  $('empty').hidden = list.length > 0;
-  $('empty').textContent = k ? `找不到「${k}」，換個關鍵字試試。` : `「${tab}」還沒有食譜，點右上角「＋」新增。`;
-}
-$('q').addEventListener('input', renderRecipes);
-$('showOff').addEventListener('change', renderRecipes);
-$('tabs').addEventListener('click', e => { const b = e.target.closest('.pill'); if (b){ tab = b.dataset.cat; renderRecipes(); } });
-$('grid').addEventListener('click', e => { const b = e.target.closest('.tile'); if (b) openSheet(byId[b.dataset.id]); });
-$('add').addEventListener('click', () => openSheet(null));
-
-function openSheet(r){
-  cur = r; cat = r ? r.category : (CATS.includes(tab) ? tab : CATS[0]);
-  tags = r ? [...r.ingredients] : []; rate = r ? r.kid_rating : null;
-  $('sheetTitle').textContent = r ? '編輯食譜' : '新增食譜';
-  $('fName').value = r ? r.name : ''; $('fBeef').checked = r ? r.has_beef : false;
-  $('fMin').value = r && r.cook_minutes ? r.cook_minutes : ''; $('fNotes').value = r && r.notes ? r.notes : '';
-  $('tagIn').value = ''; $('formErr').hidden = true;
-  $('dangerZone').hidden = !r; $('btnOff').textContent = r && !r.active ? '還原這道菜' : '停用這道菜';
-  renderCat(); renderTags(); renderRate(); renderNote();
-  $('sheet').showModal();
-}
-function renderCat(){ $('fCat').innerHTML = CATS.map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join(''); }
-$('fCat').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ cat = b.dataset.v; renderCat(); } });
-function renderTags(){
-  $('tagBox').innerHTML = tags.map((t, i) => `<span class="tag">${esc(t)}<button type="button" data-i="${i}" aria-label="移除 ${esc(t)}">×</button></span>`).join('');
-  const freq = {}; recipes.forEach(r => r.ingredients.forEach(t => freq[t] = (freq[t] || 0) + 1));
-  const sug = Object.keys(freq).filter(t => !tags.includes(t)).sort((a, b) => freq[b] - freq[a]).slice(0, 14);
-  $('tagSug').innerHTML = sug.map(t => `<button type="button" data-t="${esc(t)}">＋${esc(t)}</button>`).join('');
-}
-function addTag(t){
-  t = t.trim();
-  if (t && !tags.includes(t)){ tags.push(t); if (t === '牛') $('fBeef').checked = true; }
-  $('tagIn').value = ''; renderTags(); renderNote();
-}
-$('tagBox').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ tags.splice(+b.dataset.i, 1); renderTags(); renderNote(); } });
-$('tagSug').addEventListener('click', e => { const b = e.target.closest('button'); if (b) addTag(b.dataset.t); });
-$('tagIn').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ',' || e.key === '，'){ e.preventDefault(); addTag($('tagIn').value); } });
-$('tagIn').addEventListener('blur', () => { if ($('tagIn').value.trim()) addTag($('tagIn').value); });
-$('fBeef').addEventListener('change', renderNote);
-function renderNote(){ $('beefNote').textContent = tags.includes('牛') ? '食材含「牛」，會自動標為含牛。' : ($('fBeef').checked ? '含牛的菜只會排在爸爸中班的日子。' : ''); }
-function renderRate(){ $('fRate').innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-v="${n}" aria-pressed="${rate === n}">${n}</button>`).join(''); }
-$('fRate').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ const v = +b.dataset.v; rate = rate === v ? null : v; renderRate(); } });
-
-const showErr = m => { const p = $('formErr'); p.textContent = m; p.hidden = !m; };
-const closeSheet = () => $('sheet').close();
-$('btnCancel').addEventListener('click', closeSheet);
-$('sheet').addEventListener('click', e => { if (e.target === $('sheet')) closeSheet(); });
-function upsertLocal(row){
-  const i = recipes.findIndex(r => r.id === row.id);
-  i >= 0 ? recipes[i] = row : recipes.push(row);
-  recipes.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
-  byId[row.id] = row;
-}
-async function saveRecipe(){
-  showErr('');
-  if ($('tagIn').value.trim()) addTag($('tagIn').value);
-  const name = $('fName').value.trim();
-  if (!name) return showErr('請輸入菜名。');
-  const min = parseInt($('fMin').value, 10);
-  const row = { name, category: cat, ingredients: tags, has_beef: $('fBeef').checked || tags.includes('牛'),
-    cook_minutes: Number.isFinite(min) && min > 0 ? min : null, kid_rating: rate, notes: $('fNotes').value.trim() || null };
-  $('btnSave').disabled = true;
-  const req = cur ? db.from('recipes').update(row).eq('id', cur.id) : db.from('recipes').insert(row);
-  const { data, error } = await req.select().single();
-  $('btnSave').disabled = false;
-  if (error) return showErr(error.code === '23505' ? '已經有同名的食譜，請改用其他名稱。' : '儲存失敗：' + error.message);
-  upsertLocal(data); tab = data.category; $('q').value = '';
-  closeSheet(); renderRecipes(); toast('已儲存「' + data.name + '」');
-}
-$('btnSave').addEventListener('click', saveRecipe);
-$('form').addEventListener('submit', e => { e.preventDefault(); saveRecipe(); });
-['fName','fMin'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); saveRecipe(); } }));
-$('btnOff').addEventListener('click', async () => {
-  if (!cur) return;
-  const next = !cur.active;
-  if (!next && !(await ask(`停用「${cur.name}」？`, '停用後不會再被排進菜單，歷史紀錄會保留，之後可以還原。', '停用'))) return;
-  $('btnOff').disabled = true;
-  const { data, error } = await db.from('recipes').update({ active: next }).eq('id', cur.id).select().single();
-  $('btnOff').disabled = false;
-  if (error) return showErr((next ? '還原' : '停用') + '失敗：' + error.message);
-  upsertLocal(data); closeSheet(); renderRecipes();
-  toast(next ? `已還原「${data.name}」` : `已停用「${data.name}」`);
-});
-
-$('btnDel').addEventListener('click', async () => {
-  if (!cur) return;
-  if (!(await ask(`刪除「${cur.name}」？`, '會永久刪除這道食譜，無法復原。\n如果它曾經排進菜單，系統會擋下，請改用「停用」。', '刪除', true))) return;
-  $('btnDel').disabled = true;
-  const { error } = await db.from('recipes').delete().eq('id', cur.id);
-  $('btnDel').disabled = false;
-  if (error) return showErr(error.code === '23503' ? '這道菜曾排進菜單，不能刪除。請改用「停用」，它就不會再被排進菜單。' : '刪除失敗：' + error.message);
-  const name = cur.name;
-  recipes = recipes.filter(r => r.id !== cur.id); delete byId[cur.id];
-  closeSheet(); renderRecipes(); toast(`已刪除「${name}」`);
-});
-
-/* ---------- 待買清單 ---------- */
-const SHOP_GROUPS = ['蔬菜','肉類','海鮮','蛋豆','乾貨調味','其他'];
-let shop = [];
-const SEAF = ['魚','蝦','鮭','鱸','鯖','石斑','蛤','花枝','透抽','海鮮','蚵'];
-const EGGB = ['蛋','豆腐','豆干','豆皮','豆漿'];
-const MEAT = ['豬','牛','雞','肉','排骨','培根','香腸','火腿'];
-const VEGS = ['菜','瓜','蔥','薑','蒜','菇','筍','椒','茄','蘿蔔','馬鈴薯','地瓜','玉米','洋蔥','芹','韭','豆芽','南瓜','花椰','青花','番茄'];
-const DRYS = ['醬','油','鹽','糖','醋','粉','米','麵','烏龍','海苔','紫菜','味噌','咖哩','胡椒','酒','高湯'];
-function guessGroup(n){
-  const has = a => a.some(k => n.includes(k));
-  if (n.includes('奶')) return '其他';
-  if (has(SEAF)) return '海鮮';
-  if (has(EGGB)) return '蛋豆';
-  if (has(MEAT)) return '肉類';
-  if (has(VEGS)) return '蔬菜';
-  if (has(DRYS)) return '乾貨調味';
-  return '其他';
-}
-const tagGroup = t => ['豬','牛','雞'].includes(t) ? '肉類' : ['魚','蝦','海鮮'].includes(t) ? '海鮮' : ['蛋','豆腐'].includes(t) ? '蛋豆' : '蔬菜';
-function shopKind(it){
-  const n = it.name;
-  if (n.includes('牛')) return '牛'; if (n.includes('豬')) return '豬'; if (n.includes('雞') && !n.includes('蛋')) return '雞';
-  if (SEAF.some(k => n.includes(k))) return '海鮮'; if (n.includes('蛋')) return '蛋'; if (n.includes('豆腐')) return '豆腐';
-  return it.grp === '蔬菜' ? '蔬菜' : 'none';
-}
-
-async function renderShop(){
-  const r = await db.from('shopping_items').select('*').order('created_at', { ascending: true });
-  if (r.error){
-    shop = [];
-    const missing = /shopping_items|relation|schema cache|does not exist/i.test(r.error.message || '');
-    $('shopList').innerHTML = `<p class="empty">${missing ? '還沒建立「待買清單」的資料表。<br>請在 Supabase 的 SQL Editor 執行 03_shopping.sql。' : '讀取失敗：' + esc(r.error.message)}</p>`;
-    $('shopNote').textContent = ''; $('sClear').hidden = true; $('sWipe').disabled = true; return;
-  }
-  shop = r.data; drawShop();
-}
-function drawShop(){
-  const done = shop.filter(x => x.done).length, todo = shop.length - done;
-  $('sWipe').disabled = !shop.length;
-  $('sClear').hidden = !done; $('sClear').textContent = `清除已買（${done}）`;
-  $('shopNote').textContent = shop.length ? `${todo} 項待買` : '';
-  if (!shop.length){ $('shopList').innerHTML = `<p class="empty">還沒有待買的東西。<br>可以從菜單帶入，或自己新增。</p>`; return; }
-  $('shopList').innerHTML = SHOP_GROUPS.map(g => {
-    const xs = shop.filter(x => x.grp === g).sort((a, b) => a.done - b.done);
-    if (!xs.length) return '';
-    return `<div class="gh"><span>${g}</span><small>${xs.filter(x => !x.done).length}</small></div>` + xs.map(it =>
-      `<div class="it${it.done ? ' done' : ''} k-${shopKind(it)}"><button type="button" class="ck" data-id="${esc(it.id)}" aria-pressed="${!!it.done}" aria-label="${it.done ? '取消已買' : '標示已買'}"></button><button type="button" class="in" data-id="${esc(it.id)}"><span class="nm">${esc(it.name)}</span>${it.note ? `<small>${esc(it.note)}</small>` : ''}</button><button type="button" class="rm" data-id="${esc(it.id)}" aria-label="刪除「${esc(it.name)}」">×</button></div>`).join('');
-  }).join('');
-}
-async function addShop(){
-  const names = [...new Set($('sName').value.split(/[,，、\s]+/).map(s => s.trim()).filter(Boolean))];
-  if (!names.length) return;
-  const have = new Set(shop.filter(x => !x.done).map(x => x.name));
-  const rows = names.filter(n => !have.has(n)).map(n => ({ name: n, grp: guessGroup(n) }));
-  if (!rows.length){ $('sName').value = ''; return toast('清單裡已經有了'); }
-  $('sAdd').disabled = true;
-  const r = await db.from('shopping_items').insert(rows).select();
-  $('sAdd').disabled = false;
-  if (r.error) return toast('新增失敗：' + r.error.message, true);
-  shop.push(...r.data); $('sName').value = ''; drawShop();
-  if (rows.length < names.length) toast('已加入 ' + rows.length + ' 項，其餘清單裡已有');
-}
-$('sAdd').addEventListener('click', addShop);
-$('sName').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addShop(); } });
-
-async function toggleShop(id){
-  const it = shop.find(x => x.id === id); if (!it) return;
-  it.done = !it.done; drawShop();
-  const r = await db.from('shopping_items').update({ done: it.done }).eq('id', id);
-  if (r.error){ it.done = !it.done; drawShop(); toast('更新失敗：' + r.error.message, true); }
-}
-async function delShop(id){
-  const it = shop.find(x => x.id === id); if (!it) return;
-  shop = shop.filter(x => x.id !== id); drawShop();
-  const r = await db.from('shopping_items').delete().eq('id', id);
-  if (r.error){ shop.push(it); drawShop(); return toast('刪除失敗：' + r.error.message, true); }
-  toast(`已刪除「${it.name}」`, false, { label: '復原', fn: async () => {
-    const w = await db.from('shopping_items').insert({ name: it.name, grp: it.grp, note: it.note, done: it.done }).select().single();
-    if (w.error) return toast('復原失敗：' + w.error.message, true);
-    shop.push(w.data); drawShop();
-  } });
-}
-function itemMenu(id){
-  const it = shop.find(x => x.id === id); if (!it) return;
-  openPick(it.name,
-    (it.note ? `<p class="askmsg">${esc(it.note)}</p>` : '') +
-    SHOP_GROUPS.map(g => `<button data-g="${g}">移到「${g}」${g === it.grp ? '<small>目前</small>' : ''}</button>`).join('') +
-    `<button data-del="1" style="color:var(--red)">刪除這項</button>`,
-    async btn => {
-      closePick();
-      const r = btn.dataset.del ? await db.from('shopping_items').delete().eq('id', id) : await db.from('shopping_items').update({ grp: btn.dataset.g }).eq('id', id);
-      if (r.error) return toast('更新失敗：' + r.error.message, true);
-      if (btn.dataset.del) shop = shop.filter(x => x.id !== id); else it.grp = btn.dataset.g;
-      drawShop();
-    });
-}
-$('shopList').addEventListener('click', e => {
-  const ck = e.target.closest('.ck'); if (ck) return toggleShop(ck.dataset.id);
-  const rm = e.target.closest('.rm'); if (rm) return delShop(rm.dataset.id);
-  const n = e.target.closest('.in'); if (n) itemMenu(n.dataset.id);
-});
-
-// 從菜單帶入：把該週每道菜的「主食材」合併成待買項目，備註寫出是哪幾道菜
-async function importShop(ws){
-  const r = await db.from('meal_items').select('meal_date,recipe_id').gte('meal_date', fmt(ws)).lte('meal_date', fmt(addDays(ws, 6)));
-  if (r.error) return toast('讀取菜單失敗：' + r.error.message, true);
-  const map = new Map(); let noTag = 0;
-  for (const x of r.data){
-    const rc = byId[x.recipe_id]; if (!rc) continue;
-    if (!rc.ingredients.length){ noTag++; continue; }
-    rc.ingredients.forEach(t => { if (!map.has(t)) map.set(t, new Set()); map.get(t).add(rc.name); });
-  }
-  if (!r.data.length) return toast('這週還沒有排菜，請先到「本週菜單」排好');
-  const have = new Set(shop.filter(x => !x.done).map(x => x.name));
-  const rows = [...map].filter(([t]) => !have.has(t)).map(([t, ds]) => ({ name: t, grp: tagGroup(t), note: [...ds].join('、') }));
-  if (rows.length){
-    const w = await db.from('shopping_items').insert(rows).select();
-    if (w.error) return toast('新增失敗：' + w.error.message, true);
-    shop.push(...w.data); drawShop();
-  }
-  toast(`已帶入 ${rows.length} 項${noTag ? `；${noTag} 道菜沒有主食材標籤，請自行補充` : ''}`);
-}
-$('sImport').addEventListener('click', () => {
-  const t = mondayOf(new Date()), n = addDays(t, 7);
-  const lab = d => { const e = addDays(d, 6); return `${d.getMonth()+1}/${d.getDate()} – ${e.getMonth()+1}/${e.getDate()}`; };
-  openPick('從哪一週的菜單帶入？', `<button data-w="0">本週<small>${lab(t)}</small></button><button data-w="1">下週<small>${lab(n)}</small></button>`,
-    btn => { closePick(); importShop(btn.dataset.w === '1' ? n : t); });
-});
-$('sCopy').addEventListener('click', async () => {
-  const lines = ['待買清單'];
-  SHOP_GROUPS.forEach(g => { const xs = shop.filter(x => x.grp === g && !x.done); if (xs.length) lines.push(`【${g}】${xs.map(x => x.name).join('、')}`); });
-  if (lines.length === 1) return toast('沒有待買的東西');
-  const text = lines.join('\n');
-  try { await navigator.clipboard.writeText(text); toast('已複製，可以貼到 LINE'); }
-  catch { openPick('複製待買清單', `<textarea readonly id="cpText">${esc(text)}</textarea>`, () => {}); $('cpText').select(); }
-});
-$('sWipe').addEventListener('click', async () => {
-  if (!shop.length) return toast('清單已經是空的');
-  const n = shop.length, ids = shop.map(x => x.id), backup = shop.map(x => ({ name: x.name, grp: x.grp, note: x.note, done: x.done }));
-  if (!(await ask('清空待買清單？', `會移除全部 ${n} 項，包含還沒買的。`, '清空', true))) return;
-  const r = await db.from('shopping_items').delete().in('id', ids);
-  if (r.error) return toast('清空失敗：' + r.error.message, true);
-  shop = []; drawShop();
-  toast('已清空待買清單', false, { label: '復原', fn: async () => {
-    const w = await db.from('shopping_items').insert(backup).select();
-    if (w.error) return toast('復原失敗：' + w.error.message, true);
-    shop.push(...w.data); drawShop();
-  } });
-});
-$('sClear').addEventListener('click', async () => {
-  const n = shop.filter(x => x.done).length; if (!n) return;
-  if (!(await ask('清除已買？', `會移除已打勾的 ${n} 項。`, '清除'))) return;
-  const r = await db.from('shopping_items').delete().eq('done', true);
-  if (r.error) return toast('清除失敗：' + r.error.message, true);
-  shop = shop.filter(x => !x.done); drawShop();
-});
-
-renderLegends();
-init();
+renderPlan();
 </script>
 </body>
 </html>
