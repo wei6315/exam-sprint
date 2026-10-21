@@ -358,6 +358,7 @@ const $=id=>document.getElementById(id);
 
 /* ---------- plan data ---------- */
 function ymd(n){return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
+const M15=['數','數學 15 題','評量或作業簿，寫完自己打勾；作業多的日子可以留到週日補',1,'m15'];
 const QUIZ=['英','睡前英文小考','單字 10 題，10 分鐘，交卷後自動打勾',0,'quiz'];
 const ITEMS={
 '自':[['3-1 波的傳播與特徵 重點整理','p.77–86　老師講太趕，從頭補'],['3-1 練習題','p.77–86'],['3-1 錯題訂正','不懂的地方直接問 Claude'],
@@ -415,6 +416,7 @@ const DAYS=[];
       let note=NOTE[w];if(d==='2026-10-20')note='第一天！平方根不用硬背：記熟平方表，平方根就是反過來查。';
       if(d==='2026-11-12')note='考前兩週開始，這是你自己決定不滑平板的時間。用騎車、聽音樂來放鬆 💪 '+note;
       D={d,w:WCH[w],note,t:tasks};}
+    if(d>='2026-10-23')D.t.push(M15);
     D.t.push(QUIZ);DAYS.push(D);}
 })();
 DAYS.forEach(D=>{const[y,m,d]=D.d.split('-');D.label=(+m)+'/'+(+d);});
@@ -455,7 +457,7 @@ function renderPlan(){
   $('hw').innerHTML=hwOn?'今天的作業：'+[[3,'少（1–3 項）'],[2,'中（4–5 項）'],[1,'多（6 項以上）']].map(o=>'<button class="chip'+((S.hw[D.d]||3)===o[0]?' on':'')+'" data-hw="'+o[0]+'">'+o[1]+'</button>').join(''):'';
   let pn=0;
   $('tasks').innerHTML=D.t.map((x,ti)=>{const on=S.done[tid(cur,ti)];
-    const later=x[3]>0&&(++pn)>cap&&!on;
+    const later=x[4]==='m15'?(hwOn&&cap===1&&!on):(x[3]>0&&(++pn)>cap&&!on);
     const tm=x[3]?'🎃'.repeat(x[3]):'';
     const meta=later?'作業多，這顆移到週日補':[x[2],tm].filter(Boolean).join('　');
     return '<li><button class="task'+(on?' done':'')+(later?' later':'')+'" data-t="'+ti+'" aria-pressed="'+(on?'true':'false')+'"><span class="box">'+check+'</span><span class="tbody"><span class="tt"><span class="subj">'+x[0]+'</span>'+x[1]+'</span>'+(meta?'<span class="meta">'+meta+'</span>':'')+'</span></button></li>';}).join('');
