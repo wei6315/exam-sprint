@@ -47,7 +47,7 @@ header .sub{color:var(--muted);font-size:14px;margin-top:4px;letter-spacing:.04e
 .dday span{display:block;font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:.04em}
 
 nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
-  display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:18px}
+  display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:18px}
 nav button{border:0;background:transparent;padding:8px 2px;border-radius:18px;font-size:14px;color:var(--muted);white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:2px}
 nav button .ic{font-size:18px;line-height:1;filter:saturate(.55);opacity:.85}
 nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
@@ -192,6 +192,12 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
 .task.later{opacity:.45}
 .late{margin-top:10px;font-size:14px;color:var(--accent)}
 .deck.soon{opacity:.55;cursor:default}
+.tg h3{display:flex;justify-content:space-between;align-items:baseline}
+.tg h3 span{font-size:14px;font-weight:400;color:var(--muted)}
+.tg .task.done .tt{text-decoration:none;color:var(--ink)}
+.task.ph{cursor:default}
+.task.ph .box{border-style:dashed}
+.olist .it.no{opacity:.45}
 /* focus full screen */
 .clock{cursor:pointer}
 .fxopen{border:0;background:transparent;color:var(--muted);font-size:14px;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
@@ -246,6 +252,7 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
 
   <nav role="tablist">
     <button role="tab" data-tab="plan" aria-selected="true"><span class="ic">🎃</span>進度</button>
+    <button role="tab" data-tab="taught" aria-selected="false"><span class="ic">✅</span>上課</button>
     <button role="tab" data-tab="quiz" aria-selected="false"><span class="ic">✏️</span>英文小考</button>
     <button role="tab" data-tab="cards" aria-selected="false"><span class="ic">🃏</span>小卡</button>
     <button role="tab" data-tab="overview" aria-selected="false"><span class="ic">📊</span>總表</button>
@@ -276,7 +283,13 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
     <div class="bar green"><i id="dayBar" style="width:0%"></i></div>
     <p class="note" id="dayNote"></p>
     <div class="hw" id="hw"></div>
+    <div class="hw" id="vid"></div>
     <ul class="tasks" id="tasks"></ul>
+  </section>
+
+  <section id="taught" hidden>
+    <p class="note" style="margin-top:0">老師教完一節就來勾。進度只會排<b>老師已經教過</b>的內容，不會再超前。</p>
+    <div id="taughtBox" class="tg"></div>
   </section>
 
   <section id="overview" hidden>
@@ -286,7 +299,7 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
     <div class="subjs" id="ovSubj"></div>
     <h3>每日總覽</h3>
     <div class="tblw"><table class="tbl" id="ovDays"></table></div>
-    <h3>全部任務</h3>
+    <h3>各科內容</h3>
     <ul class="olist" id="ovList"></ul>
   </section>
 
@@ -309,7 +322,7 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
     <div class="tblw"><table class="tbl">
       <tr><th>科目</th><th>範圍</th><th>評量頁數</th></tr>
       <tr><td>自然</td><td>第 3 章 波動與聲音、第 4 章 光、影像與顏色</td><td>p.77–166</td></tr>
-      <tr><td>數學</td><td>第 2 章 平方根與畢氏定理、第 3 章 因式分解</td><td>p.53–149</td></tr>
+      <tr><td>數學</td><td>第 2 章 平方根與畢氏定理、第 3 章 因式分解（自己從 2-2 開始讀）</td><td>p.53–149</td></tr>
       <tr><td>英文</td><td>U3、U4、Review 2</td><td>p.81–158</td></tr>
       <tr><td>國文</td><td>L4 愛蓮說、L5 生命中的碎珠、L6 鳥、語文常識二</td><td>p.80–148</td></tr>
       <tr><td>歷史</td><td>ch3 宋元、ch4 明清</td><td>p.21–36</td></tr>
@@ -329,6 +342,8 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
     <ul class="rules">
       <li>回家先寫作業 → 18:00 晚餐 → 作業寫完 → 平板 → 南瓜時間</li>
       <li>作業少 3 顆、中 2 顆、多 1 顆；週五 1 顆；假日上午 2 顆、晚餐後 2 顆</li>
+      <li>週六下午 2:00–4:30 數學課</li>
+      <li>老師教完一節，就到「上課」勾起來，進度只排教過的內容</li>
       <li>21:00 以後不開新的南瓜，22:30 前睡覺</li>
       <li>考試當天帶齊 2B 鉛筆、橡皮擦、藍筆、黑筆、修正帶</li>
     </ul>
@@ -360,7 +375,7 @@ const $=id=>document.getElementById(id);
 function ymd(n){return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
 const M15=['數','數學 15 題','評量或作業簿，寫完自己打勾；作業多的日子可以留到週日補',1,'m15'];
 const QUIZ=['英','睡前英文小考','單字 10 題，10 分鐘，交卷後自動打勾',0,'quiz'];
-const ITEMS={
+const OLD_ITEMS={
 '自':[['3-1 波的傳播與特徵 重點整理','p.77–86　老師講太趕，從頭補'],['3-1 練習題','p.77–86'],['3-1 錯題訂正','不懂的地方直接問 Claude'],
  ['3-2 聲音的形成 重點整理','p.87–95'],['3-2 練習題','p.87–95'],['3-2 錯題訂正',''],
  ['3-3 多變的聲音 重點整理','p.96–105'],['3-3 練習題','p.96–105'],['3-3 錯題訂正',''],
@@ -398,29 +413,106 @@ const ITEMS={
  ['地理 ch4 練習題＋訂正','p.28–35'],['歷史 ch4 明清 重點＋練習','p.29–35'],['公民 ch4 中央政府 重點＋練習','p.29–37']]
 };
 const FILL={'自':['錯題訂正','不懂的問 Claude'],'數':['錯題訂正',''],'英':['單字小卡打字',''],'國':['注釋複習',''],'社':['錯題訂正','']};
-const TPL={1:['自','自','數'],2:['數','英','國'],3:['自','自','數'],4:['數','英','國'],5:['自'],6:['自','自','數','社'],0:['英','國','社','補']};
+const OLD_TPL={1:['自','自','數'],2:['數','英','國'],3:['自','自','數'],4:['數','英','國'],5:['自'],6:['自','自','數','社'],0:['英','國','社','補']};
 const WCH='日一二三四五六';
-const NOTE={1:'自然走在老師前面：先看重點，上課就變成複習。',2:'國文用猜的題目記得畫「？」，對答案時一定要看詳解。',3:'自然走在老師前面：先看重點，上課就變成複習。',4:'國文用猜的題目記得畫「？」，對答案時一定要看詳解。',5:'補習日，只做一顆就好。',6:'上午兩顆，下午自由騎車，晚餐後兩顆。',0:'最後一顆用來補這週沒做到的，全部做完就自由！'};
+/* old NOTE removed */
 const FINAL={
  '2026-11-23':{note:'最後衝刺第 1 天：只複習、不學新的。',t:[['自','第 3、4 章 錯題總複習','自評裡錯的再寫一次',1],['數','第 2、3 章 錯題總複習','平方表、乘法公式再練一次',1],['社','歷史 第二次段考模擬試題','p.36',1]]},
  '2026-11-24':{note:'最後衝刺第 2 天：模擬試題計時寫，像真的考試一樣。',t:[['國','第二次學力綜合評量（計時寫）','p.142–148',1],['英','Review 2 錯題＋U3、U4 單字總考','',1],['社','地理、公民 第二次段考模擬試題','地理 p.36、公民 p.38',1]]},
  '2026-11-25':{note:'明天就考了！讀完早點睡，睡飽比多讀一小時更有用。',t:[['自','畫圖題再畫一次','光的反射、透鏡成像',1],['數','十字交乘＋根式運算 快速再練','',1],['國','L4–L6 注釋總複習','',1]]}
 };
-const DAYS=[];
+const OLD_DAYS=[];
 (function(){const ptr={'自':0,'數':0,'英':0,'國':0,'社':0};
   for(let t=new Date(2026,9,20);t<=new Date(2026,10,25);t.setDate(t.getDate()+1)){
     const d=ymd(t),w=t.getDay();let D;
     if(FINAL[d])D={d,w:WCH[w],note:FINAL[d].note,t:FINAL[d].t.slice()};
-    else{const tasks=TPL[w].map(sj=>{if(sj==='補')return['補','補這週沒做到的南瓜','都做完了就自由！',1];
-        const it=ITEMS[sj][ptr[sj]++]||FILL[sj];return[sj,it[0],it[1],1];});
-      let note=NOTE[w];if(d==='2026-10-20')note='第一天！平方根不用硬背：記熟平方表，平方根就是反過來查。';
+    else{const tasks=OLD_TPL[w].map(sj=>{if(sj==='補')return['補','補這週沒做到的南瓜','都做完了就自由！',1];
+        const it=OLD_ITEMS[sj][ptr[sj]++]||FILL[sj];return[sj,it[0],it[1],1];});
+      let note='';if(d==='2026-10-20')note='第一天！平方根不用硬背：記熟平方表，平方根就是反過來查。';
       if(d==='2026-11-12')note='考前兩週開始，這是你自己決定不滑平板的時間。用騎車、聽音樂來放鬆 💪 '+note;
       D={d,w:WCH[w],note,t:tasks};}
     if(d>='2026-10-23')D.t.push(M15);
-    D.t.push(QUIZ);DAYS.push(D);}
+    D.t.push(QUIZ);OLD_DAYS.push(D);}
 })();
-DAYS.forEach(D=>{const[y,m,d]=D.d.split('-');D.label=(+m)+'/'+(+d);});
-const tid=(di,ti)=>DAYS[di].d+'#'+ti;
+
+/* ---------- v2: follow the teacher ---------- */
+const SEC=[['自3-1','自','3-1 波的傳播與特徵'],['自3-2','自','3-2 聲音的形成'],['自3-3','自','3-3 多變的聲音'],['自3-4','自','3-4 聲波的傳播與應用'],
+ ['自4-1','自','4-1 光的傳播'],['自4-2','自','4-2 光的反射與面鏡成像'],['自4-3','自','4-3 光的折射'],['自4-4','自','4-4 透鏡成像'],['自4-5','自','4-5 色散與顏色'],
+ ['數2-2','數','2-2 根式的運算'],['數2-3','數','2-3 畢氏定理'],['數3-1','數','3-1 提公因式與乘法公式作因式分解'],['數3-2','數','3-2 十字交乘法因式分解'],
+ ['英U3w','英','U3 單字'],['英U3g','英','U3 文法'],['英U3r','英','U3 課文'],['英U4w','英','U4 單字'],['英U4g','英','U4 文法'],['英U4r','英','U4 課文'],['英R2','英','Review 2'],
+ ['國L4','國','L4 愛蓮說'],['國L5','國','L5 生命中的碎珠'],['國L6','國','L6 鳥'],['國常識','國','語文常識二 語法（下）句子'],
+ ['地3','社','地理 ch3 中國的人口'],['地4','社','地理 ch4 中國的經濟'],['歷3','社','歷史 ch3 宋元'],['歷4','社','歷史 ch4 明清'],['公3','社','公民 ch3 法治與權力分立'],['公4','社','公民 ch4 中央政府']];
+const IT={
+'自':[['自3-1','3-1 波的傳播與特徵 重點整理','p.77–86　老師講太趕，從頭補'],['自3-1','3-1 練習題','p.77–86'],['自3-1','3-1 錯題訂正','不懂的地方直接問 Claude'],
+ ['自3-2','3-2 聲音的形成 重點整理','p.87–95'],['自3-2','3-2 練習題','p.87–95'],['自3-2','3-2 錯題訂正',''],
+ ['自3-3','3-3 多變的聲音 重點整理','p.96–105'],['自3-3','3-3 練習題','p.96–105'],['自3-3','3-3 錯題訂正',''],
+ ['自3-4','3-4 聲波的傳播與應用 重點整理','p.106–113'],['自3-4','3-4 練習題','p.106–113'],['自3-4','3-4 錯題訂正',''],
+ ['自3-4','第 3 章 自我評量','p.114–116'],['自3-4','第 3 章 自評訂正＋科學素養篇','p.117'],
+ ['自4-1','4-1 光的傳播 重點整理','p.118–124'],['自4-1','4-1 練習題','p.118–124'],
+ ['自4-2','4-2 光的反射與面鏡成像 重點整理','p.125–136'],['自4-2','4-2 練習題（上半）','p.125–136'],['自4-2','4-2 練習題（下半）','p.125–136'],['自4-2','4-2 錯題訂正＋自己畫反射圖',''],
+ ['自4-3','4-3 光的折射 重點整理','p.137–143'],['自4-3','4-3 練習題','p.137–143'],['自4-3','4-3 錯題訂正',''],
+ ['自4-4','4-4 透鏡成像 重點整理','p.144–155'],['自4-4','4-4 練習題（上半）','p.144–155'],['自4-4','4-4 練習題（下半）','p.144–155'],['自4-4','4-4 錯題訂正＋自己畫透鏡成像圖',''],
+ ['自4-5','4-5 色散與顏色 重點整理','p.156–162'],['自4-5','4-5 練習題','p.156–162'],
+ ['自4-5','第 4 章 自我評量','p.163–165'],['自4-5','第 4 章 自評訂正＋科學素養篇','p.166']],
+'數':[['數2-2','2-2 根式的運算 重點整理','p.70–88　也可以改看鄧強數學影片'],['數2-2','2-2 練習題（上半）','p.70–88'],['數2-2','2-2 練習題（下半）','p.70–88'],['數2-2','2-2 錯題訂正',''],
+ ['數2-3','2-3 畢氏定理 重點整理','p.89–108　也可以改看鄧強數學影片'],['數2-3','2-3 練習題（上半）','p.89–108'],['數2-3','2-3 練習題（下半）','p.89–108'],['數2-3','2-3 錯題訂正',''],
+ ['數2-3','第 2 章 自我評量','p.109–111'],['數2-3','第 2 章 自評訂正＋素養題','p.112'],
+ ['數3-1','乘法公式複習','第一次段考的 1-1，因式分解要用'],
+ ['數3-1','3-1 提公因式與乘法公式作因式分解 重點整理','p.113–128　也可以改看鄧強數學影片'],['數3-1','3-1 練習題（上半）','p.113–128'],['數3-1','3-1 練習題（下半）','p.113–128'],['數3-1','3-1 錯題訂正',''],
+ ['數3-2','3-2 十字交乘法因式分解 重點整理','p.129–145　也可以改看鄧強數學影片'],['數3-2','3-2 練習題（上半）','p.129–145'],['數3-2','3-2 練習題（下半）','p.129–145'],
+ ['數3-2','第 3 章 自我評量','p.146–148'],['數3-2','第 3 章 自評訂正＋素養題','p.149']],
+'英':[['英U3w','U3 單字前半','用小卡「英文 U3 單字」打字練'],['英U3g','U3 文法','上課教的句型'],['英U3w','U3 單字後半',''],
+ ['英U3r','U3 課文','p.81–114'],['英U3r','U3 練習題','p.81–114'],['英U3r','U3 錯題訂正',''],
+ ['英U4w','U4 單字前半','用小卡「英文 U4 單字」打字練'],['英U4g','U4 文法','上課教的句型'],['英U4w','U4 單字後半',''],
+ ['英U4r','U4 課文','p.115–150'],['英U4r','U4 練習題','p.115–150'],['英U4r','U4 錯題訂正',''],
+ ['英R2','Review Test 2','p.151–158'],['英R2','閱讀自學樂園＋Review 訂正','p.151–158'],['英U4w','U3、U4 單字總複習','']],
+'國':[['國L4','L4 愛蓮說 課文＋注釋','p.80–97'],['國L4','L4 練習題','用猜的題目畫「？」'],['國L4','L4「？」題目訂正','看詳解，弄懂其他選項錯在哪'],
+ ['國L5','L5 生命中的碎珠 課文＋注釋','p.98–115'],['國L5','L5 練習題','用猜的題目畫「？」'],['國L5','L5「？」題目訂正',''],['國L5','L5 閱讀練習','每段用一句話說出重點'],
+ ['國L6','L6 鳥 課文＋注釋','p.116–136'],['國L6','L6 練習題','用猜的題目畫「？」'],['國L6','L6「？」題目訂正',''],['國L6','L6 閱讀練習','每段用一句話說出重點'],
+ ['國常識','語文常識二 語法（下）句子','p.137–141'],['國常識','語文常識二 練習題','p.137–141'],
+ ['國L6','L4–L6 注釋、國字總複習',''],['國L6','L4–L6「？」題目總訂正','']],
+'社':[['地3','地理 ch3 中國的人口 重點','p.20–27'],['地3','地理 ch3 練習題＋訂正','p.20–27'],
+ ['地4','地理 ch4 中國的經濟 重點','p.28–35'],['地4','地理 ch4 練習題＋訂正','p.28–35'],
+ ['歷3','歷史 ch3 宋元 重點','p.21–28'],['歷3','歷史 ch3 練習題＋訂正','p.21–28'],['歷4','歷史 ch4 明清 重點＋練習','p.29–35'],
+ ['公3','公民 ch3 法治與權力分立 重點','p.21–28'],['公3','公民 ch3 練習題＋訂正','p.21–28'],['公4','公民 ch4 中央政府 重點＋練習','p.29–37']]
+};
+const ALL=[];Object.keys(IT).forEach(sj=>IT[sj].forEach((x,i)=>ALL.push({id:sj+i,s:sj,sec:x[0],t:x[1],m:x[2]})));
+const TPL={1:['自','自','數'],2:['數','英','國'],3:['自','自','數'],4:['數','英','國'],5:['自'],6:['自','自','英','社'],0:['英','國','社','補']};
+const NOTE={1:'只排老師教過的內容。老師今天教了新的，記得去「上課」勾一下。',2:'國文用猜的題目記得畫「？」，對答案時一定要看詳解。',3:'只排老師教過的內容。老師今天教了新的，記得去「上課」勾一下。',4:'國文用猜的題目記得畫「？」，對答案時一定要看詳解。',5:'補習日，只做一顆就好。',6:'下午 2:00–4:30 數學課，所以今天不排數學南瓜。上午兩顆、晚餐後兩顆。',0:'最後一顆用來補這週沒做到的，全部做完就自由！'};
+const FILL2={'自':['自然 複習','老師教過的再看一次，錯的題目重寫'],'數':['數學 錯題重寫','老師教過的範圍，錯的題目再寫一次'],'英':['英文 單字小卡打字',''],'國':['國文 注釋複習',''],'社':['社會 複習','老師教過的章節再看一次'],'補':['','']};
+const SNAME={'自':'自然','數':'數學','英':'英文','國':'國文','社':'社會','補':'補進度'};
+const DAYS=[];
+for(let t=new Date(2026,9,20);t<=new Date(2026,10,25);t.setDate(t.getDate()+1)){const d=ymd(t);DAYS.push({d,w:WCH[t.getDay()],wd:t.getDay(),label:(t.getMonth()+1)+'/'+t.getDate()});}
+S.di=S.di||{};
+if(!S.taught){S.taught={'自3-1':1,'自3-2':1,'數2-2':1,'英U3w':1,'英U3g':1,'國L4':1,'地3':1};}
+if(!S.v){
+  Object.keys(S.done).forEach(k=>{const m=k.match(/^(\d{4}-\d\d-\d\d)#(\d+)$/);if(!m)return;
+    const D=OLD_DAYS.find(x=>x.d===m[1]);const task=D&&D.t[+m[2]];delete S.done[k];if(!task)return;
+    if(task[4]==='quiz')S.done[m[1]+'#quiz']=1;else if(task[4]==='m15')S.done[m[1]+'#m15']=1;
+    else if(task[0]==='補')S.done[m[1]+'#補']=1;
+    else if(FINAL[m[1]])S.done[m[1]+'#F'+m[2]]=1;
+    else{const it=ALL.find(x=>x.s===task[0]&&x.t===task[1]);if(it&&!S.di[it.id])S.di[it.id]=m[1];}});
+  S.v=2;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+}
+function noteFor(d,wd){if(FINAL[d])return FINAL[d].note;let n=NOTE[wd];if(d==='2026-11-12')n='考前兩週開始，這是你自己決定不滑平板的時間。用騎車、聽音樂來放鬆 💪 '+n;return n;}
+function planFor(d){
+  const wd=new Date(d+'T12:00:00').getDay();const out=[];
+  if(FINAL[d])FINAL[d].t.forEach((x,i)=>out.push({key:d+'#F'+i,s:x[0],t:x[1],m:x[2],p:1}));
+  else{const used={};
+    TPL[wd].forEach((sj,si)=>{
+      if(sj==='數'&&S.video&&S.video[d]){out.push({key:d+'#v'+si,s:'數',t:'看鄧強數學影片',m:'這顆算完成',p:1,video:1});return;}
+      if(sj==='補'&&S.video&&S.video[d]&&!TPL[wd].includes('數')){out.push({key:d+'#v'+si,s:'數',t:'看鄧強數學影片',m:'算補進度完成',p:1,video:1});return;}
+      if(sj==='補'){out.push({key:d+'#補',s:'補',t:'補這週沒做到的南瓜',m:'都做完了就自由！',p:1});return;}
+      let it=ALL.find(x=>x.s===sj&&!used[x.id]&&S.di[x.id]===d);
+      if(!it)it=ALL.find(x=>x.s===sj&&!used[x.id]&&!S.di[x.id]&&S.taught[x.sec]);
+      if(it){used[it.id]=1;out.push({key:'i:'+it.id,item:it.id,s:sj,t:it.t,m:it.m,p:1});}
+      else{const f=FILL2[sj];out.push({key:d+'#f'+si,s:sj,t:f[0],m:f[1],p:1,fill:1});}});}
+  if(!FINAL[d]&&S.video&&S.video[d]&&!TPL[wd].includes('數')&&!TPL[wd].includes('補'))out.push({key:d+'#vx',s:'數',t:'看鄧強數學影片',m:'額外完成',p:1,video:1});
+  if(d>='2026-10-23')out.push({key:d+'#m15',s:'數',t:'數學 15 題',m:'評量或作業簿，寫完自己打勾；作業多的日子可以留到週日補',p:1,kind:'m15'});
+  out.push({key:d+'#quiz',s:'英',t:'睡前英文小考',m:'單字 10 題，10 分鐘，交卷後自動打勾',p:0,kind:'quiz'});
+  return out;}
+function isDone(x,d){if(x.video)return true;return x.item?S.di[x.item]===d:!!S.done[x.key];}
+
 
 /* ---------- dates ---------- */
 /* study day: before 04:00 still counts as the previous day */
@@ -439,36 +531,55 @@ renderDday();
 
 /* ---------- render plan ---------- */
 const check='<svg viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function dayStat(di){const n=DAYS[di].t.length;let k=0;DAYS[di].t.forEach((_,ti)=>{if(S.done[tid(di,ti)])k++;});return[k,n];}
+function dayStat(di){const d=DAYS[di].d;const pl=planFor(d);return[pl.filter(x=>isDone(x,d)).length,pl.length];}
+let curPlan=[];
 function renderPlan(){
-  let k=0,n=0;DAYS.forEach((_,di)=>{const[a,b]=dayStat(di);k+=a;n+=b;});
-  const p=Math.round(k/n*100);
-  $('allBar').style.width=p+'%';$('allTxt').textContent=p+'%（'+k+'/'+n+'）';
-  $('days').innerHTML=DAYS.map((D,di)=>{const[a,b]=dayStat(di);
-    return '<button class="day'+(di===cur?' on':'')+(a===b?' full':'')+'" data-d="'+di+'">'+D.label+'<small>'+(a===b?'完成':'週'+D.w)+'</small></button>';}).join('');
-  const D=DAYS[cur];const[a,b]=dayStat(cur);
-  const pumps=D.t.reduce((s,x)=>s+x[3],0);
-  $('dayTitle').textContent=D.label+'（'+D.w+'）'+(D.d===todayStr()?'・今天':'');
-  $('dayTxt').textContent=a+'/'+b+' 項・🎃 '+pumps;
+  const T=todayStr();
+  const k=ALL.filter(x=>S.di[x.id]).length,n=ALL.length;const p=Math.round(k/n*100);
+  $('allBar').style.width=p+'%';$('allTxt').textContent=p+'%（讀完 '+k+'/'+n+' 項內容）';
+  $('days').innerHTML=DAYS.map((D,di)=>{const[a,b]=dayStat(di);const full=D.d<=T&&a===b;
+    return '<button class="day'+(di===cur?' on':'')+(full?' full':'')+'" data-d="'+di+'">'+D.label+'<small>'+(full?'完成':'週'+D.w)+'</small></button>';}).join('');
+  const D=DAYS[cur];const d=D.d;const pl=planFor(d);curPlan=pl;
+  const a=pl.filter(x=>isDone(x,d)).length,b=pl.length;
+  const mode=d===T?'today':(d<T?'past':'future');
+  $('dayTitle').textContent=D.label+'（'+D.w+'）'+(mode==='today'?'・今天':'');
+  $('dayTxt').textContent=a+'/'+b+' 項・🎃 '+pl.reduce((s,x)=>s+x.p,0);
   $('dayBar').style.width=Math.round(a/b*100)+'%';
-  $('dayNote').textContent=D.note;
-  const wd=new Date(D.d+'T12:00:00').getDay();const hwOn=wd>=1&&wd<=4&&!FINAL[D.d];
-  const cap=hwOn?(S.hw[D.d]||3):99;
-  $('hw').innerHTML=hwOn?'今天的作業：'+[[3,'少（1–3 項）'],[2,'中（4–5 項）'],[1,'多（6 項以上）']].map(o=>'<button class="chip'+((S.hw[D.d]||3)===o[0]?' on':'')+'" data-hw="'+o[0]+'">'+o[1]+'</button>').join(''):'';
+  $('dayNote').textContent=mode==='future'?'內容會依照老師的上課進度，當天自動排好。':noteFor(d,D.wd);
+  const hwOn=mode==='today'&&D.wd>=1&&D.wd<=4&&!FINAL[d];
+  const cap=hwOn?(S.hw[d]||3):99;
+  $('hw').innerHTML=hwOn?'今天的作業：'+[[3,'少（1–3 項）'],[2,'中（4–5 項）'],[1,'多（6 項以上）']].map(o=>'<button class="chip'+((S.hw[d]||3)===o[0]?' on':'')+'" data-hw="'+o[0]+'">'+o[1]+'</button>').join(''):'';
+  const hasMath=!FINAL[d];
+  $('vid').innerHTML=(mode!=='future'&&hasMath)?'<button class="chip'+(S.video&&S.video[d]?' on':'')+'" id="vidBtn">📺 '+(mode==='today'?'今天':'這天')+'看了鄧強數學影片</button>'+(S.video&&S.video[d]?'<span>'+(TPL[D.wd].includes('數')?'數學南瓜都算完成':(TPL[D.wd].includes('補')?'算補進度完成':'多算一顆完成'))+'</span>':''):'';
   let pn=0;
-  $('tasks').innerHTML=D.t.map((x,ti)=>{const on=S.done[tid(cur,ti)];
-    const later=x[4]==='m15'?(hwOn&&cap===1&&!on):(x[3]>0&&(++pn)>cap&&!on);
-    const tm=x[3]?'🎃'.repeat(x[3]):'';
-    const meta=later?'作業多，這顆移到週日補':[x[2],tm].filter(Boolean).join('　');
-    return '<li><button class="task'+(on?' done':'')+(later?' later':'')+'" data-t="'+ti+'" aria-pressed="'+(on?'true':'false')+'"><span class="box">'+check+'</span><span class="tbody"><span class="tt"><span class="subj">'+x[0]+'</span>'+x[1]+'</span>'+(meta?'<span class="meta">'+meta+'</span>':'')+'</span></button></li>';}).join('');
+  $('tasks').innerHTML=pl.map((x,ti)=>{const on=isDone(x,d);
+    let ph=false,t=x.t,meta;
+    const later=mode==='today'&&(x.kind==='m15'?(hwOn&&cap===1&&!on):(x.p>0&&x.kind!=='m15'&&(++pn)>cap&&!on));
+    if(mode==='future'&&x.item){ph=true;t=SNAME[x.s];meta='依老師進度安排';}
+    else if(mode==='future'&&x.fill){ph=true;t=SNAME[x.s];meta='依老師進度安排';}
+    else if(mode==='past'&&x.item&&!on){ph=true;t=SNAME[x.s]+'（這顆沒做到）';meta='內容會排到之後';}
+    else meta=later?'作業多，留到明天或週日':[x.m,x.p?'🎃':''].filter(Boolean).join('　');
+    return '<li><button class="task'+(on?' done':'')+(later?' later':'')+(ph?' ph':'')+'" data-t="'+ti+'"'+(ph?' disabled':'')+' aria-pressed="'+(on?'true':'false')+'"><span class="box">'+check+'</span><span class="tbody"><span class="tt"><span class="subj">'+x.s+'</span>'+esc(t)+'</span>'+(meta?'<span class="meta">'+esc(meta)+'</span>':'')+'</span></button></li>';}).join('');
   const on=$('days').querySelector('.on');if(on)on.scrollIntoView({inline:'center',block:'nearest'});
   renderOverview();
 }
+function renderTaught(){
+  const G=[['自','自然'],['數','數學'],['英','英文'],['國','國文'],['社','社會']];
+  $('taughtBox').innerHTML=G.map(g=>{const ss=SEC.filter(x=>x[1]===g[0]);const k=ss.filter(x=>S.taught[x[0]]).length;
+    return '<h3>'+g[1]+'<span>已教 '+k+'/'+ss.length+'</span></h3><ul class="tasks">'+ss.map(x=>{const on=!!S.taught[x[0]];
+      return '<li><button class="task'+(on?' done':'')+'" data-sec="'+x[0]+'" aria-pressed="'+on+'"><span class="box">'+check+'</span><span class="tbody"><span class="tt">'+x[2]+'</span><span class="meta">'+(on?'老師教了':'還沒教')+'</span></span></button></li>';}).join('')+'</ul>';}).join('');
+}
+$('taughtBox').addEventListener('click',e=>{const b=e.target.closest('[data-sec]');if(!b)return;const k=b.dataset.sec;
+  if(S.taught[k])delete S.taught[k];else S.taught[k]=1;save();renderTaught();renderPlan();});
+$('vid').addEventListener('click',e=>{if(!e.target.closest('#vidBtn'))return;const d=DAYS[cur].d;S.video=S.video||{};if(S.video[d])delete S.video[d];else S.video[d]=1;save();renderPlan();});
 $('hw').addEventListener('click',e=>{const b=e.target.closest('[data-hw]');if(!b)return;S.hw[DAYS[cur].d]=+b.dataset.hw;save();renderPlan();});
 $('days').addEventListener('click',e=>{const b=e.target.closest('.day');if(!b)return;cur=+b.dataset.d;renderPlan();});
-$('tasks').addEventListener('click',e=>{const b=e.target.closest('.task');if(!b)return;const id=tid(cur,+b.dataset.t);
-  if(DAYS[cur].t[+b.dataset.t][4]==='quiz'&&!S.done[id]){goTab('quiz');return;}
-  if(S.done[id])delete S.done[id];else S.done[id]=1;save();renderPlan();});
+$('tasks').addEventListener('click',e=>{const b=e.target.closest('.task');if(!b||b.disabled)return;const x=curPlan[+b.dataset.t];const d=DAYS[cur].d;
+  if(x.video)return;
+  if(x.kind==='quiz'&&!isDone(x,d)){goTab('quiz');return;}
+  if(x.item){if(S.di[x.item]===d)delete S.di[x.item];else S.di[x.item]=d;}
+  else{if(S.done[x.key])delete S.done[x.key];else S.done[x.key]=1;}
+  save();renderPlan();});
 
 /* ---------- tabs ---------- */
 function goTab(t){
@@ -477,6 +588,7 @@ function goTab(t){
   if(t==='cards'&&!active)renderDecks();
   if(t==='quiz'&&!QZ.running)renderQuiz();
   if(t==='overview')renderOverview();
+  if(t==='taught')renderTaught();
   window.scrollTo(0,0);
 }
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.tab)));
@@ -766,21 +878,17 @@ $('deckView').addEventListener('click',e=>{const t=e.target.closest('button');if
   }});
 
 /* ---------- overview ---------- */
-const SUBJ=[['自',['自']],['數',['數']],['英',['英']],['國',['國']],['社',['社']]];
 function renderOverview(){
-  let k=0,n=0;const sc={};SUBJ.forEach(x=>sc[x[0]]=[0,0]);
-  DAYS.forEach((D,di)=>D.t.forEach((x,ti)=>{const d=!!S.done[tid(di,ti)];n++;if(d)k++;
-    const g=SUBJ.find(z=>z[1].includes(x[0]));if(g){sc[g[0]][1]++;if(d)sc[g[0]][0]++;}}));
-  const p=Math.round(k/n*100);$('ovBar').style.width=p+'%';$('ovTxt').textContent=p+'%（'+k+'/'+n+'）';
-  $('ovSubj').innerHTML=SUBJ.map(z=>{const[a,b]=sc[z[0]];const q=b?Math.round(a/b*100):0;
-    return '<div class="srow"><b>'+z[0]+'</b><div class="bar green"><i style="width:'+q+'%"></i></div><span>'+a+'/'+b+'</span></div>';}).join('');
-  const t=todayStr();
+  const T=todayStr();const k=ALL.filter(x=>S.di[x.id]).length,n=ALL.length;const p=Math.round(k/n*100);
+  $('ovBar').style.width=p+'%';$('ovTxt').textContent=p+'%（讀完 '+k+'/'+n+' 項內容）';
+  $('ovSubj').innerHTML=['自','數','英','國','社'].map(sj=>{const its=ALL.filter(x=>x.s===sj);const a=its.filter(x=>S.di[x.id]).length;const q=Math.round(a/its.length*100);
+    return '<div class="srow"><b>'+sj+'</b><div class="bar green"><i style="width:'+q+'%"></i></div><span>'+a+'/'+its.length+'</span></div>';}).join('');
   $('ovDays').innerHTML='<tr><th>日期</th><th>任務</th><th>🎃 實際/計畫</th><th>英文小考</th></tr>'+DAYS.map((D,di)=>{
-    const[a,b]=dayStat(di);const plan=D.t.reduce((s,x)=>s+x[3],0);const q=S.quiz&&S.quiz[D.d];
-    return '<tr class="go'+(D.d===t?' today':'')+'" data-d="'+di+'"><td>'+D.label+'（'+D.w+'）</td><td class="num">'+(a===b?'✓ ':'')+a+'/'+b+'</td><td class="num">'+(S.pomo[D.d]||0)+' / '+plan+'</td><td class="num">'+(q?q.best+' 分':'—')+'</td></tr>';}).join('');
-  $('ovList').innerHTML=DAYS.map((D,di)=>{const[a,b]=dayStat(di);
-    return '<li><div class="dh">'+D.label+'（'+D.w+'）<span>'+a+'/'+b+'</span></div>'+D.t.map((x,ti)=>{const d=S.done[tid(di,ti)];
-      return '<div class="it'+(d?' ok':'')+'"><i>'+(d?'✓':'○')+'</i><span>'+x[0]+'｜'+x[1]+'</span></div>';}).join('')+'</li>';}).join('');
+    const pl=planFor(D.d);const a=pl.filter(x=>isDone(x,D.d)).length,b=pl.length;const plan=pl.reduce((s,x)=>s+x.p,0);const q=S.quiz&&S.quiz[D.d];
+    return '<tr class="go'+(D.d===T?' today':'')+'" data-d="'+di+'"><td>'+D.label+'（'+D.w+'）</td><td class="num">'+(D.d<=T?(a===b?'✓ ':'')+a+'/'+b:'—')+'</td><td class="num">'+(S.pomo[D.d]||0)+' / '+plan+'</td><td class="num">'+(q?q.best+' 分':'—')+'</td></tr>';}).join('');
+  $('ovList').innerHTML=['自','數','英','國','社'].map(sj=>{const its=ALL.filter(x=>x.s===sj);
+    return '<li><div class="dh">'+SNAME[sj]+'<span>'+its.filter(x=>S.di[x.id]).length+'/'+its.length+'</span></div>'+its.map(x=>{const dn=S.di[x.id];const tg=S.taught[x.sec];
+      return '<div class="it'+(dn?' ok':'')+(!dn&&!tg?' no':'')+'"><i>'+(dn?'✓':'○')+'</i><span>'+esc(x.t)+(dn?'（'+(+dn.slice(5,7))+'/'+(+dn.slice(8))+'）':(!tg?'・老師還沒教':''))+'</span></div>';}).join('')+'</li>';}).join('');
 }
 $('ovDays').addEventListener('click',e=>{const r=e.target.closest('tr.go');if(!r)return;cur=+r.dataset.d;renderPlan();goTab('plan');});
 
@@ -791,7 +899,7 @@ function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h
   return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return (h>>>0)/4294967296;};}
 function pickQuiz(date,attempt){
   const rnd=seeded(date+'#'+attempt);const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
-  const useU4=date>='2026-11-02';
+  const useU4=!!S.taught['英U4w'];
   let pool=DECKS[0].c.map((_,i)=>'u3:'+i);if(useU4)pool=pool.concat(DECKS[1].c.map((_,i)=>'u4:'+i));
   const wrong=sh(pool.filter(k=>S.wrong[k])).slice(0,4);
   const rest=sh(pool.filter(k=>!wrong.includes(k)));
@@ -799,18 +907,20 @@ function pickQuiz(date,attempt){
 }
 function cardOf(key){const[id,i]=key.split(':');const d=DECKS.find(x=>x.id===id);return{d,c:d.c[+i],key};}
 function renderQuiz(){
-  const t=todayStr();const q=S.quiz[t];const useU4=t>='2026-11-02';
+  const t=todayStr();const q=S.quiz[t];const useU4=!!S.taught['英U4w'];
+  const miss=(DAYS.filter(D=>D.d<t&&!S.done[D.d+'#quiz']).pop()||{}).d;
   $('quizBox').innerHTML='<div class="qintro"><h2>'+(+t.slice(5,7))+'/'+(+t.slice(8))+' 英文小考</h2>'
     +'<p>單字 10 題，每題 10 分</p>'
-    +'<p>範圍：'+(useU4?'U3–U4':'U3（11/2 起加入 U4）')+'，上次錯的字會優先再考</p>'
+    +'<p>範圍：'+(useU4?'U3–U4':'U3（老師教 U4 單字後會自動加入）')+'，上次錯的字會優先再考</p>'
     +'<div class="best">'+(q?'今天最高 <b>'+q.best+'</b> 分・考過 '+q.tries+' 次':'今天還沒考')+'</div>'
-    +'<button class="btn primary" id="qStart" style="min-width:160px;padding:14px">'+(q?'再考一次':'開始考試')+'</button></div>'
+    +'<button class="btn primary" id="qStart" style="min-width:160px;padding:14px">'+(q?'再考一次':'開始考試')+'</button>'
+    +(miss?'<div style="margin-top:14px"><button class="btn" id="qMake">補做 '+(+miss.slice(5,7))+'/'+(+miss.slice(8))+' 的小考</button><p style="font-size:13px">補做的分數會記在那一天，那天的小考也會打勾</p></div>':'')+'</div>'
     +quizHistory();
-  $('qStart').onclick=startQuiz;
+  $('qStart').onclick=()=>startQuiz();if(miss)$('qMake').onclick=()=>startQuiz(miss);
 }
 function quizHistory(){const ks=Object.keys(S.quiz).sort();if(!ks.length)return '';
   return '<div class="qhist">'+ks.map(k=>(+k.slice(5,7))+'/'+(+k.slice(8))+' '+S.quiz[k].best+' 分').join('　')+'</div>';}
-function startQuiz(){const t=todayStr();const tries=(S.quiz[t]?S.quiz[t].tries:0);
+function startQuiz(day){const t=day||todayStr();const tries=(S.quiz[t]?S.quiz[t].tries:0);
   QZ={running:true,date:t,items:pickQuiz(t,tries),idx:0,ans:[]};drawQ(true);}
 function drawQ(focus){
   const it=cardOf(QZ.items[QZ.idx]);const isS=it.d.id==='ens';const n=QZ.items.length;
@@ -837,13 +947,13 @@ function finishQ(){
     return '<li><div class="q">'+esc(it.c[1])+'</div><span class="'+(ok?'ok':'ng')+'">'+(ok?'✓ ':'✗ ')+'</span>'+html
       +(ok?'':'<div><small>你寫</small>'+(u?esc(u):'（空白）')+'</div>')+'<div class="q">'+pts+' 分</div></li>';});
   const t=QZ.date;const prev=S.quiz[t]||{best:0,tries:0};S.quiz[t]={best:Math.max(prev.best,total),tries:prev.tries+1,last:total};
-  const di=DAYS.findIndex(D=>D.d===t);if(di>=0){const ti=DAYS[di].t.findIndex(x=>x[4]==='quiz');if(ti>=0)S.done[tid(di,ti)]=1;}
+  S.done[t+'#quiz']=1;
   save();QZ={running:false};
   const wrongN=rows.filter(r=>r.includes('class="ng"')).length;
   $('quizBox').innerHTML='<div class="qscore"><b>'+total+'</b><span>分'+(wrongN?'・錯 '+wrongN+' 題，已加回小卡和明天的小考':'・全對！')+'</span></div>'
     +'<ul class="qres">'+rows.join('')+'</ul>'
     +'<div class="fc-btns"><button class="btn" id="qHome">回小考首頁</button><button class="btn primary" id="qAgain">再考一次</button></div>';
-  $('qHome').onclick=renderQuiz;$('qAgain').onclick=startQuiz;
+  $('qHome').onclick=renderQuiz;$('qAgain').onclick=()=>startQuiz(t);
   renderPlan();window.scrollTo(0,0);
 }
 
