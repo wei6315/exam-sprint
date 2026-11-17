@@ -314,20 +314,22 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
 
   <section id="exam" hidden>
     <div class="tblw"><table class="tbl">
-      <tr><th>日期</th><th>考試</th></tr>
-      <tr><td>11/26（四）</td><td rowspan="2">考程表發下來後再更新</td></tr>
-      <tr><td>11/27（五）</td></tr>
+      <tr><th>節次</th><th>11/26（四）</th><th>11/27（五）</th></tr>
+      <tr><td>第一節</td><td>數學</td><td>英文</td></tr>
+      <tr><td>第二節</td><td>作文</td><td>英文聽力</td></tr>
+      <tr><td>第三節</td><td>自習</td><td>國文</td></tr>
+      <tr><td>第四節</td><td>自習</td><td>自習</td></tr>
+      <tr><td>第五節</td><td>社會</td><td>自然</td></tr>
     </table></div>
-    <h3>範圍</h3>
+    <h3>範圍與配分</h3>
     <div class="tblw"><table class="tbl">
-      <tr><th>科目</th><th>範圍</th><th>評量頁數</th></tr>
-      <tr><td>自然</td><td>第 3 章 波動與聲音、第 4 章 光、影像與顏色</td><td>p.77–166</td></tr>
-      <tr><td>數學</td><td>第 2 章 平方根與畢氏定理、第 3 章 因式分解（自己從 2-2 開始讀）</td><td>p.53–149</td></tr>
-      <tr><td>英文</td><td>U3、U4、Review 2</td><td>p.81–158</td></tr>
-      <tr><td>國文</td><td>L4 愛蓮說、L5 生命中的碎珠、L6 鳥、語文常識二</td><td>p.80–148</td></tr>
-      <tr><td>歷史</td><td>ch3 宋元、ch4 明清</td><td>p.21–36</td></tr>
-      <tr><td>地理</td><td>ch3 中國的人口、ch4 中國的經濟</td><td>p.20–36</td></tr>
-      <tr><td>公民</td><td>ch3 法治與權力分立、ch4 中央政府</td><td>p.21–38</td></tr>
+      <tr><th>科目</th><th>範圍</th><th>配分</th></tr>
+      <tr><td>數學</td><td>2-2～3-2</td><td>選擇 60%、填充 30%、計算 10%</td></tr>
+      <tr><td>社會</td><td>歷 3-1～4-2、地 ch3–ch4、公 ch3–ch4</td><td>選擇 100%</td></tr>
+      <tr><td>英文</td><td>U3–U4、Review 2</td><td>綜合選擇 50%、閱讀題組 30%、文意字彙 6%、十問的用法 2%、依提示作答 6%、翻譯 6%</td></tr>
+      <tr><td>英聽</td><td>U3–U4</td><td>選擇 20%</td></tr>
+      <tr><td>國文</td><td>L4、L6、語文常識二（<b>L5 不考</b>）</td><td>國字注音 10%、注釋 20%、綜合選擇 50%、閱讀理解 20%</td></tr>
+      <tr><td>自然</td><td>ch3–ch4</td><td>基本選擇 60%、進階選擇 40%</td></tr>
     </table></div>
     <h3>我的目標</h3>
     <div class="tblw"><table class="tbl">
@@ -345,7 +347,7 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
       <li>週六下午 2:00–4:30 數學課</li>
       <li>老師教完一節，就到「上課」勾起來，進度只排教過的內容</li>
       <li>21:00 以後不開新的南瓜，22:30 前睡覺</li>
-      <li>考試當天帶齊 2B 鉛筆、橡皮擦、藍筆、黑筆、修正帶</li>
+      <li>考試當天帶齊 2B 鉛筆、橡皮擦、藍筆、黑筆、修正帶；作文與數學非選題用黑筆</li>
     </ul>
   </section>
 </div>
@@ -417,9 +419,10 @@ const OLD_TPL={1:['自','自','數'],2:['數','英','國'],3:['自','自','數']
 const WCH='日一二三四五六';
 /* old NOTE removed */
 const FINAL={
- '2026-11-23':{note:'最後衝刺第 1 天：只複習、不學新的。',t:[['自','第 3、4 章 錯題總複習','自評裡錯的再寫一次',1],['數','第 2、3 章 錯題總複習','平方表、乘法公式再練一次',1],['社','歷史 第二次段考模擬試題','p.36',1]]},
- '2026-11-24':{note:'最後衝刺第 2 天：模擬試題計時寫，像真的考試一樣。',t:[['國','第二次學力綜合評量（計時寫）','p.142–148',1],['英','Review 2 錯題＋U3、U4 單字總考','',1],['社','地理、公民 第二次段考模擬試題','地理 p.36、公民 p.38',1]]},
- '2026-11-25':{note:'明天就考了！讀完早點睡，睡飽比多讀一小時更有用。',t:[['自','畫圖題再畫一次','光的反射、透鏡成像',1],['數','十字交乘＋根式運算 快速再練','',1],['國','L4–L6 注釋總複習','',1]]}
+ '2026-11-23':{note:'最後衝刺第 1 天：只複習、不學新的。',t:[['自','第 3、4 章 錯題總複習','自評裡錯的再寫一次',1],['數','第 2、3 章 錯題總複習','乘法公式、根式運算再練一次',1],['國','L4、L6 注釋小卡','小卡「國文 注釋複習卷」打字練',1]]},
+ '2026-11-24':{note:'最後衝刺第 2 天：模擬試題計時寫，像真的考試一樣。',t:[['國','第二次學力綜合評量（計時寫）','p.142–148',1],['英','Review 2 錯題＋精華句默寫','小卡「英文 精華句」',1],['自','畫圖題再畫一次','光的反射、透鏡成像',1]]},
+ '2026-11-25':{note:'明天考數學、作文、社會！讀完早點睡，睡飽比多讀一小時更有用。',t:[['數','十字交乘＋根式運算 快速再練','',1],['社','歷史、地理、公民 模擬試題','歷 p.36、地 p.36、公 p.38',1],['國','作文演練 看結構就好','國文評量 p.149',1]]},
+ '2026-11-26':{note:'第一天考完了！今晚衝明天的英文、國文、自然，早點睡。',t:[['英','U3、U4 單字＋精華句 總複習','',1],['國','L4、L6 注釋＋語文常識二','',1],['自','第 3、4 章 錯題再看一次','',1]]}
 };
 const OLD_DAYS=[];
 (function(){const ptr={'自':0,'數':0,'英':0,'國':0,'社':0};
@@ -440,8 +443,8 @@ const SEC=[['自3-1','自','3-1 波的傳播與特徵'],['自3-2','自','3-2 聲
  ['自4-1','自','4-1 光的傳播'],['自4-2','自','4-2 光的反射與面鏡成像'],['自4-3','自','4-3 光的折射'],['自4-4','自','4-4 透鏡成像'],['自4-5','自','4-5 色散與顏色'],
  ['數2-2','數','2-2 根式的運算'],['數2-3','數','2-3 畢氏定理'],['數3-1','數','3-1 提公因式與乘法公式作因式分解'],['數3-2','數','3-2 十字交乘法因式分解'],
  ['英U3w','英','U3 單字'],['英U3g','英','U3 文法'],['英U3r','英','U3 課文'],['英U4w','英','U4 單字'],['英U4g','英','U4 文法'],['英U4r','英','U4 課文'],['英R2','英','Review 2'],
- ['國L4','國','L4 愛蓮說'],['國L5','國','L5 生命中的碎珠'],['國L6','國','L6 鳥'],['國常識','國','語文常識二 語法（下）句子'],
- ['地3','社','地理 ch3 中國的人口'],['地4','社','地理 ch4 中國的經濟'],['歷3','社','歷史 ch3 宋元'],['歷4','社','歷史 ch4 明清'],['公3','社','公民 ch3 法治與權力分立'],['公4','社','公民 ch4 中央政府']];
+ ['國L4','國','L4 愛蓮說'],['國L6','國','L6 鳥'],['國常識','國','語文常識二 語法（下）句子'],
+ ['地3','社','地理 ch3 中國的人口'],['地4','社','地理 ch4 中國的經濟'],['歷3','社','歷史 ch3 宋元'],['歷4','社','歷史 ch4 明清（考到 4-2）'],['公3','社','公民 ch3 法治與權力分立'],['公4','社','公民 ch4 中央政府']];
 const IT={
 '自':[['自3-1','3-1 波的傳播與特徵 重點整理','p.77–86　老師講太趕，從頭補'],['自3-1','3-1 練習題','p.77–86'],['自3-1','3-1 錯題訂正','不懂的地方直接問 Claude'],
  ['自3-2','3-2 聲音的形成 重點整理','p.87–95'],['自3-2','3-2 練習題','p.87–95'],['自3-2','3-2 錯題訂正',''],
@@ -467,13 +470,12 @@ const IT={
  ['英U4r','U4 課文','p.115–150'],['英U4r','U4 練習題','p.115–150'],['英U4r','U4 錯題訂正',''],
  ['英R2','Review Test 2','p.151–158'],['英R2','閱讀自學樂園＋Review 訂正','p.151–158'],['英U4w','U3、U4 單字總複習','']],
 '國':[['國L4','L4 愛蓮說 課文＋注釋','p.80–97'],['國L4','L4 練習題','用猜的題目畫「？」'],['國L4','L4「？」題目訂正','看詳解，弄懂其他選項錯在哪'],
- ['國L5','L5 生命中的碎珠 課文＋注釋','p.98–115'],['國L5','L5 練習題','用猜的題目畫「？」'],['國L5','L5「？」題目訂正',''],['國L5','L5 閱讀練習','每段用一句話說出重點'],
  ['國L6','L6 鳥 課文＋注釋','p.116–136'],['國L6','L6 練習題','用猜的題目畫「？」'],['國L6','L6「？」題目訂正',''],['國L6','L6 閱讀練習','每段用一句話說出重點'],
  ['國常識','語文常識二 語法（下）句子','p.137–141'],['國常識','語文常識二 練習題','p.137–141'],
- ['國L6','L4–L6 注釋、國字總複習',''],['國L6','L4–L6「？」題目總訂正','']],
+ ['國L6','L4、L6 注釋、國字總複習','小卡「國文 注釋複習卷」'],['國L6','L4、L6「？」題目總訂正','']],
 '社':[['地3','地理 ch3 中國的人口 重點','p.20–27'],['地3','地理 ch3 練習題＋訂正','p.20–27'],
  ['地4','地理 ch4 中國的經濟 重點','p.28–35'],['地4','地理 ch4 練習題＋訂正','p.28–35'],
- ['歷3','歷史 ch3 宋元 重點','p.21–28'],['歷3','歷史 ch3 練習題＋訂正','p.21–28'],['歷4','歷史 ch4 明清 重點＋練習','p.29–35'],
+ ['歷3','歷史 ch3 宋元 重點','p.21–28'],['歷3','歷史 ch3 練習題＋訂正','p.21–28'],['歷4','歷史 ch4 明清 重點＋練習','p.29–35　考到 4-2'],
  ['公3','公民 ch3 法治與權力分立 重點','p.21–28'],['公3','公民 ch3 練習題＋訂正','p.21–28'],['公4','公民 ch4 中央政府 重點＋練習','p.29–37']]
 };
 const ALL=[];Object.keys(IT).forEach(sj=>IT[sj].forEach((x,i)=>ALL.push({id:sj+i,s:sj,sec:x[0],t:x[1],m:x[2]})));
@@ -482,7 +484,7 @@ const NOTE={1:'只排老師教過的內容。老師今天教了新的，記得�
 const FILL2={'自':['自然 複習','老師教過的再看一次，錯的題目重寫'],'數':['數學 錯題重寫','老師教過的範圍，錯的題目再寫一次'],'英':['英文 單字小卡打字',''],'國':['國文 注釋複習',''],'社':['社會 複習','老師教過的章節再看一次'],'補':['','']};
 const SNAME={'自':'自然','數':'數學','英':'英文','國':'國文','社':'社會','補':'補進度'};
 const DAYS=[];
-for(let t=new Date(2026,9,20);t<=new Date(2026,10,25);t.setDate(t.getDate()+1)){const d=ymd(t);DAYS.push({d,w:WCH[t.getDay()],wd:t.getDay(),label:(t.getMonth()+1)+'/'+t.getDate()});}
+for(let t=new Date(2026,9,20);t<=new Date(2026,10,26);t.setDate(t.getDate()+1)){const d=ymd(t);DAYS.push({d,w:WCH[t.getDay()],wd:t.getDay(),label:(t.getMonth()+1)+'/'+t.getDate()});}
 S.di=S.di||{};
 if(!S.taught){S.taught={'自3-1':1,'自3-2':1,'數2-2':1,'英U3w':1,'英U3g':1,'國L4':1,'地3':1};}
 if(!S.v){
@@ -508,7 +510,7 @@ function planFor(d){
       if(it){used[it.id]=1;out.push({key:'i:'+it.id,item:it.id,s:sj,t:it.t,m:it.m,p:1});}
       else{const f=FILL2[sj];out.push({key:d+'#f'+si,s:sj,t:f[0],m:f[1],p:1,fill:1});}});}
   if(!FINAL[d]&&S.video&&S.video[d]&&!TPL[wd].includes('數')&&!TPL[wd].includes('補'))out.push({key:d+'#vx',s:'數',t:'看鄧強數學影片',m:'額外完成',p:1,video:1});
-  if(d>='2026-10-23')out.push({key:d+'#m15',s:'數',t:'數學 15 題',m:'評量或作業簿，寫完自己打勾；作業多的日子可以留到週日補',p:1,kind:'m15'});
+  if(d>='2026-10-23'&&d<'2026-11-26')out.push({key:d+'#m15',s:'數',t:'數學 15 題',m:'評量或作業簿，寫完自己打勾；作業多的日子可以留到週日補',p:1,kind:'m15'});
   out.push({key:d+'#quiz',s:'英',t:'睡前英文小考',m:'單字 10 題，10 分鐘，交卷後自動打勾',p:0,kind:'quiz'});
   return out;}
 function isDone(x,d){if(x.video)return true;return x.item?S.di[x.item]===d:!!S.done[x.key];}
@@ -747,6 +749,33 @@ act|表演
 all over|遍及
 make fun of|取笑
 give up|放棄`;
+const CHI2=`清「漣」|水面被風吹起的波紋。
+亭亭淨植|高挺而潔淨地直立在水中。
+中通外直|花梗中空，外表挺直。
+不蔓不枝|不蔓延細莖，不旁生枝條。
+褻玩焉|以輕慢的態度接近玩弄。
+隱逸者|隱居的高士。
+香遠「益」清|更加。
+可愛者甚「蕃」|眾多。
+「宜乎」眾矣|應當。
+濯清漣而不妖|蓮花生長於清水中卻不妖媚。
+鼓噪|喧譁吵鬧。
+「喙」|鳥嘴。
+客夜|作客他鄉的夜晚。
+蜷伏|彎曲著身體。
+羽翮|羽毛。
+市聲鼎沸|形容市街上的喧譁聲，像鼎裡的水沸騰起來一樣。
+穠纖合度|大小肥瘦都恰到好處。
+摶扶搖而直上|拍著翅膀，乘著旋風向天空飛去。
+斑斕|形容花紋鮮麗，光彩奪目。
+睥視昂藏|左顧右盼，神采飛揚的樣子。`;
+const SENT2=`Someone broke my favorite cup.|有人打破了我最喜愛的杯子。
+I was drinking water, and I wasn't even close to the table.|我在喝水，而且我甚至沒有靠近那張桌子。
+In one dream, she was eating cake when her teeth fell out one by one.|在一次夢裡，當她的牙齒一顆接一顆脫落時，她正在吃蛋糕。
+The dreamcatcher saved her from terrible nights.|捕夢網將她從可怕的夜晚解救出來。
+I want to help people in need and fight for their rights.|我想要幫助需要幫助的人，為他們爭取權利。
+IU found her love for music in junior high school.|IU 在國中時發現了自己對音樂的熱愛。
+Her relatives didn't believe in her and made fun of her dream.|她的親戚不相信她且還嘲笑她的夢想。`;
 const MATH=`11² = ?|121
 12² = ?|144
 13² = ?|169
@@ -774,6 +803,8 @@ function parse(txt){const out=[];txt.split('\n').forEach(l=>{const i=l.indexOf('
 const DECKS=[
  {id:'u3',name:'英文 U3 單字',c:parse(U3),type:'en',q:1,a:0},
  {id:'u4',name:'英文 U4 單字',c:parse(U4),type:'en',q:1,a:0},
+ {id:'s2',name:'英文 精華句',c:parse(SENT2),type:'sen',q:1,a:0},
+ {id:'c2',name:'國文 注釋複習卷',c:parse(CHI2),type:'zh',q:0,a:1},
  {id:'sq',name:'數學 平方表',c:parse(MATH),type:'en',q:0,a:1,hint:'寫出答案'}
 ];
 
@@ -798,7 +829,7 @@ function knownCount(d){return d.c.filter((_,i)=>S.known[kid(d,i)]).length;}
 function renderDecks(){
   $('deckView').hidden=true;$('deckList').hidden=false;active=null;
   $('deckList').innerHTML='<div class="decks">'+DECKS.map((d,i)=>{const k=knownCount(d),n=d.c.length;
-    return '<button class="deck" data-k="'+i+'"><b>'+d.name+'</b><small>記住 '+k+' / '+n+(d.type?'・可打字練習':'')+'</small><div class="bar green"><i style="width:'+Math.round(k/n*100)+'%"></i></div></button>';}).join('')+'<div class="deck soon"><b>國文 L4–L6 解釋</b><small>題庫發下來後再加入</small></div></div>';
+    return '<button class="deck" data-k="'+i+'"><b>'+d.name+'</b><small>記住 '+k+' / '+n+(d.type?'・可打字練習':'')+'</small><div class="bar green"><i style="width:'+Math.round(k/n*100)+'%"></i></div></button>';}).join('')+'</div>';
 }
 $('deckList').addEventListener('click',e=>{const b=e.target.closest('.deck');if(!b)return;openDeck(DECKS[+b.dataset.k]);});
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
