@@ -253,7 +253,7 @@ h3{font-size:16px;font-weight:600;margin:30px 0 10px;color:var(--muted);letter-s
   <nav role="tablist">
     <button role="tab" data-tab="plan" aria-selected="true"><span class="ic">🎃</span>進度</button>
     <button role="tab" data-tab="taught" aria-selected="false"><span class="ic">✅</span>上課</button>
-    <button role="tab" data-tab="quiz" aria-selected="false"><span class="ic">✏️</span>英文小考</button>
+    <button role="tab" data-tab="quiz" aria-selected="false"><span class="ic">✏️</span>小考</button>
     <button role="tab" data-tab="cards" aria-selected="false"><span class="ic">🃏</span>小卡</button>
     <button role="tab" data-tab="overview" aria-selected="false"><span class="ic">📊</span>總表</button>
     <button role="tab" data-tab="exam" aria-selected="false"><span class="ic">🗓️</span>考程</button>
@@ -511,7 +511,7 @@ function planFor(d){
       else{const f=FILL2[sj];out.push({key:d+'#f'+si,s:sj,t:f[0],m:f[1],p:1,fill:1});}});}
   if(!FINAL[d]&&S.video&&S.video[d]&&!TPL[wd].includes('數')&&!TPL[wd].includes('補'))out.push({key:d+'#vx',s:'數',t:'看鄧強數學影片',m:'額外完成',p:1,video:1});
   if(d>='2026-10-23'&&d<'2026-11-26')out.push({key:d+'#m15',s:'數',t:'數學 15 題',m:'評量或作業簿，寫完自己打勾；作業多的日子可以留到週日補',p:1,kind:'m15'});
-  out.push({key:d+'#quiz',s:'英',t:'睡前英文小考',m:'單字 10 題，10 分鐘，交卷後自動打勾',p:0,kind:'quiz'});
+  out.push({key:d+'#quiz',s:'英',t:'睡前小考',m:'單字 6＋精華句 2＋注釋 2，交卷後自動打勾',p:0,kind:'quiz'});
   return out;}
 function isDone(x,d){if(x.video)return true;return x.item?S.di[x.item]===d:!!S.done[x.key];}
 
@@ -914,7 +914,7 @@ function renderOverview(){
   $('ovBar').style.width=p+'%';$('ovTxt').textContent=p+'%（讀完 '+k+'/'+n+' 項內容）';
   $('ovSubj').innerHTML=['自','數','英','國','社'].map(sj=>{const its=ALL.filter(x=>x.s===sj);const a=its.filter(x=>S.di[x.id]).length;const q=Math.round(a/its.length*100);
     return '<div class="srow"><b>'+sj+'</b><div class="bar green"><i style="width:'+q+'%"></i></div><span>'+a+'/'+its.length+'</span></div>';}).join('');
-  $('ovDays').innerHTML='<tr><th>日期</th><th>任務</th><th>🎃 實際/計畫</th><th>英文小考</th></tr>'+DAYS.map((D,di)=>{
+  $('ovDays').innerHTML='<tr><th>日期</th><th>任務</th><th>🎃 實際/計畫</th><th>小考</th></tr>'+DAYS.map((D,di)=>{
     const pl=planFor(D.d);const a=pl.filter(x=>isDone(x,D.d)).length,b=pl.length;const plan=pl.reduce((s,x)=>s+x.p,0);const q=S.quiz&&S.quiz[D.d];
     return '<tr class="go'+(D.d===T?' today':'')+'" data-d="'+di+'"><td>'+D.label+'（'+D.w+'）</td><td class="num">'+(D.d<=T?(a===b?'✓ ':'')+a+'/'+b:'—')+'</td><td class="num">'+(S.pomo[D.d]||0)+' / '+plan+'</td><td class="num">'+(q?q.best+' 分':'—')+'</td></tr>';}).join('');
   $('ovList').innerHTML=['自','數','英','國','社'].map(sj=>{const its=ALL.filter(x=>x.s===sj);
@@ -932,17 +932,17 @@ function pickQuiz(date,attempt){
   const rnd=seeded(date+'#'+attempt);const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
   const useU4=!!S.taught['英U4w'];
   let pool=DECKS[0].c.map((_,i)=>'u3:'+i);if(useU4)pool=pool.concat(DECKS[1].c.map((_,i)=>'u4:'+i));
-  const wrong=sh(pool.filter(k=>S.wrong[k])).slice(0,4);
-  const rest=sh(pool.filter(k=>!wrong.includes(k)));
-  return sh(wrong.concat(rest.slice(0,10-wrong.length)));
+  const take=(pl,n,maxWrong)=>{const w=sh(pl.filter(k=>S.wrong[k])).slice(0,maxWrong);return w.concat(sh(pl.filter(k=>!w.includes(k))).slice(0,n-w.length));};
+  const deckKeys=id=>{const d=DECKS.find(x=>x.id===id);return d.c.map((_,i)=>id+':'+i);};
+  return sh(take(pool,6,3)).concat(take(deckKeys('s2'),2,1),take(deckKeys('c2'),2,1));
 }
 function cardOf(key){const[id,i]=key.split(':');const d=DECKS.find(x=>x.id===id);return{d,c:d.c[+i],key};}
 function renderQuiz(){
   const t=todayStr();const q=S.quiz[t];const useU4=!!S.taught['英U4w'];
   const miss=(DAYS.filter(D=>D.d<t&&!S.done[D.d+'#quiz']).pop()||{}).d;
-  $('quizBox').innerHTML='<div class="qintro"><h2>'+(+t.slice(5,7))+'/'+(+t.slice(8))+' 英文小考</h2>'
-    +'<p>單字 10 題，每題 10 分</p>'
-    +'<p>範圍：'+(useU4?'U3–U4':'U3（老師教 U4 單字後會自動加入）')+'，上次錯的字會優先再考</p>'
+  $('quizBox').innerHTML='<div class="qintro"><h2>'+(+t.slice(5,7))+'/'+(+t.slice(8))+' 睡前小考</h2>'
+    +'<p>英文單字 6 題＋英文精華句 2 題＋國文注釋 2 題，每題 10 分</p>'
+    +'<p>單字範圍：'+(useU4?'U3–U4':'U3（老師教 U4 單字後會自動加入）')+'，上次錯的題目會優先再考</p>'
     +'<div class="best">'+(q?'今天最高 <b>'+q.best+'</b> 分・考過 '+q.tries+' 次':'今天還沒考')+'</div>'
     +'<button class="btn primary" id="qStart" style="min-width:160px;padding:14px">'+(q?'再考一次':'開始考試')+'</button>'
     +(miss?'<div style="margin-top:14px"><button class="btn" id="qMake">補做 '+(+miss.slice(5,7))+'/'+(+miss.slice(8))+' 的小考</button><p style="font-size:13px">補做的分數會記在那一天，那天的小考也會打勾</p></div>':'')+'</div>'
@@ -954,28 +954,31 @@ function quizHistory(){const ks=Object.keys(S.quiz).sort();if(!ks.length)return 
 function startQuiz(day){const t=day||todayStr();const tries=(S.quiz[t]?S.quiz[t].tries:0);
   QZ={running:true,date:t,items:pickQuiz(t,tries),idx:0,ans:[]};drawQ(true);}
 function drawQ(focus){
-  const it=cardOf(QZ.items[QZ.idx]);const isS=it.d.id==='ens';const n=QZ.items.length;
-  $('quizBox').innerHTML='<div class="qprog"><span>第 '+(QZ.idx+1)+' / '+n+' 題・'+(isS?'整句翻譯':'單字拼寫')+'</span><span>'+'10 分</span></div>'
+  const it=cardOf(QZ.items[QZ.idx]);const ty=it.d.type;const n=QZ.items.length;const qtext=it.c[it.d.q];
+  const lab={en:'英文單字',sen:'英文精華句',zh:'國文注釋'}[ty],hint={en:'拼出英文',sen:'翻成英文整句',zh:'寫出解釋（含標點）'}[ty];
+  $('quizBox').innerHTML='<div class="qprog"><span>第 '+(QZ.idx+1)+' / '+n+' 題・'+lab+'</span><span>'+'10 分</span></div>'
     +'<div class="bar"><i style="width:'+(QZ.idx/n*100)+'%"></i></div>'
-    +'<div class="card short"><span class="face'+(it.c[1].length>14?' long':'')+'" id="qFace"></span><span class="hint">'+(isS?'翻成英文':'拼出英文')+'</span></div>'
+    +'<div class="card short"><span class="face'+(qtext.length>14?' long':'')+'" id="qFace"></span><span class="hint">'+hint+'</span></div>'
     +'<input class="ans" id="qIn" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" placeholder="在這裡輸入答案">'
     +'<div class="fc-btns"><button class="btn" id="qQuit">放棄這次</button><button class="btn primary" id="qNext">'+(QZ.idx===n-1?'交卷':'下一題')+'</button></div>';
-  $('qFace').textContent=it.c[1];
+  $('qFace').textContent=qtext;
   const inp=$('qIn');const go=()=>{QZ.ans[QZ.idx]=inp.value;if(QZ.idx<n-1){QZ.idx++;drawQ(true);}else finishQ();};
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();go();}});
   $('qNext').onclick=go;$('qQuit').onclick=()=>{QZ={running:false};renderQuiz();};
   if(focus)inp.focus();
 }
 function finishQ(){
-  let total=0;const rows=QZ.items.map((key,k)=>{const it=cardOf(key);const u=QZ.ans[k]||'';const ans=it.c[0].split('/')[0];let pts,ok,html;
-    if(it.d.id==='ens'){const A=normSen(ans).split(' '),U=normSen(u).split(' ').filter(Boolean);ok=A.join(' ')===U.join(' ');
+  let total=0;const rows=QZ.items.map((key,k)=>{const it=cardOf(key);const u=QZ.ans[k]||'';const ans=it.c[it.d.a].split('/')[0];let pts,ok,html;
+    if(it.d.type==='zh'){const A=[...normZh(ans)],U=[...normZh(u)];const dist=lev(A,U);ok=dist===0;pts=Math.max(0,5-dist)*2;
+      const hit=markMissing(A,U);html=A.map((ch,j)=>hit[j]?esc(ch):'<mark>'+esc(ch)+'</mark>').join('');}
+    else if(it.d.type==='sen'){const A=normSen(ans).split(' '),U=normSen(u).split(' ').filter(Boolean);ok=A.join(' ')===U.join(' ');
       const hit=markMissing(A,U);pts=ok?10:Math.round(hit.filter(Boolean).length/A.length*10*0.8);
       html=A.map((w,j)=>hit[j]?esc(w):'<mark>'+esc(w)+'</mark>').join(' ');}
-    else{const alts=it.c[0].split('/');ok=alts.some(a=>normEn(u)===normEn(a));pts=ok?10:0;const hit=markMissing([...ans.toLowerCase()],[...u.trim().toLowerCase()]);
+    else{const alts=it.c[it.d.a].split('/');ok=alts.some(a=>normEn(u)===normEn(a));pts=ok?10:0;const hit=markMissing([...ans.toLowerCase()],[...u.trim().toLowerCase()]);
       html=[...ans].map((ch,j)=>hit[j]?esc(ch):'<mark>'+esc(ch)+'</mark>').join('');}
     total+=pts;
     if(ok)delete S.wrong[key];else{S.wrong[key]=1;delete S.known[key];}
-    return '<li><div class="q">'+esc(it.c[1])+'</div><span class="'+(ok?'ok':'ng')+'">'+(ok?'✓ ':'✗ ')+'</span>'+html
+    return '<li><div class="q">'+esc(it.c[it.d.q])+'</div><span class="'+(ok?'ok':'ng')+'">'+(ok?'✓ ':'✗ ')+'</span>'+html
       +(ok?'':'<div><small>你寫</small>'+(u?esc(u):'（空白）')+'</div>')+'<div class="q">'+pts+' 分</div></li>';});
   const t=QZ.date;const prev=S.quiz[t]||{best:0,tries:0};S.quiz[t]={best:Math.max(prev.best,total),tries:prev.tries+1,last:total};
   S.done[t+'#quiz']=1;
